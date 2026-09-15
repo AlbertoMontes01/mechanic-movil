@@ -5,9 +5,11 @@ import { useAsync } from "@/lib/useAsync";
 import { todayISO } from "@/lib/format";
 import { PageHeader, Loader, Field, Card } from "@/components/shared";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Save, PackagePlus } from "lucide-react";
+import ClientPicker from "@/components/ClientPicker";
+import VehiclePicker from "@/components/VehiclePicker";
+import InventoryItemPicker from "@/components/InventoryItemPicker";
+import { Plus, Trash2, Save } from "lucide-react";
 
 const STATUSES = ["Draft", "In Progress", "Ready to Invoice", "Invoiced"];
 
@@ -29,13 +31,15 @@ export default function WorkOrderForm() {
 
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [items, setItems] = useState([]);
-  // { sIdx, pIdx } of the parts_used row that triggered "+ Add new part", or null.
-  const [quickAddFor, setQuickAddFor] = useState(null);
 
   useEffect(() => {
     if (!data) return;
-    const [, , me, wo, inventoryItems] = data;
+    const [fetchedClients, fetchedVehicles, me, wo, inventoryItems] = data;
+    setClients(fetchedClients);
+    setVehicles(fetchedVehicles);
     setItems(inventoryItems);
     if (wo) {
       setForm({
@@ -56,7 +60,7 @@ export default function WorkOrderForm() {
   }, [data]);
 
   if (loading || !form) return <Loader />;
-  const [clients, vehicles, , , , categories] = data;
+  const [, , , , , categories] = data;
 
   const clientVehicles = vehicles.filter((v) => v.client_id === form.client_id);
 
@@ -76,14 +80,6 @@ export default function WorkOrderForm() {
   }));
   const addPart = (sIdx) => setForm((f) => ({ ...f, subjects: f.subjects.map((s, i) => i === sIdx ? { ...s, parts_used: [...s.parts_used, { inventory_item_id: "", quantity: 1 }] } : s) }));
   const removePart = (sIdx, pIdx) => setForm((f) => ({ ...f, subjects: f.subjects.map((s, i) => i === sIdx ? { ...s, parts_used: s.parts_used.filter((_, j) => j !== pIdx) } : s) }));
-
-  const handlePartCreated = (newItem) => {
-    setItems((prev) => [newItem, ...prev]);
-    if (quickAddFor) {
-      setPart(quickAddFor.sIdx, quickAddFor.pIdx, "inventory_item_id", newItem.id);
-    }
-    setQuickAddFor(null);
-  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -110,16 +106,21 @@ export default function WorkOrderForm() {
       <form onSubmit={submit} className="space-y-5">
         <Card className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Client *">
-            <Select required value={form.client_id} onValueChange={(v) => { set("client_id", v); set("vehicle_id", ""); }}>
-              <SelectTrigger className="input-base h-[42px]"><SelectValue placeholder="Select client" /></SelectTrigger>
-              <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-            </Select>
+            <ClientPicker
+              clients={clients}
+              value={form.client_id}
+              onSelect={(c) => { set("client_id", c.id); set("vehicle_id", ""); }}
+              onClientCreated={(c) => setClients((prev) => [c, ...prev])}
+            />
           </Field>
           <Field label="Vehicle *">
-            <Select required value={form.vehicle_id} onValueChange={(v) => set("vehicle_id", v)} disabled={!form.client_id}>
-              <SelectTrigger className="input-base h-[42px]"><SelectValue placeholder={form.client_id ? "Select vehicle" : "Pick client first"} /></SelectTrigger>
-              <SelectContent>{clientVehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.year ? v.year + " " : ""}{v.make} {v.model} {v.plate ? `· ${v.plate}` : ""}</SelectItem>)}</SelectContent>
-            </Select>
+            <VehiclePicker
+              vehicles={clientVehicles}
+              clientId={form.client_id}
+              value={form.vehicle_id}
+              onSelect={(v) => set("vehicle_id", v.id)}
+              onVehicleCreated={(v) => setVehicles((prev) => [v, ...prev])}
+            />
           </Field>
           <Field label="Technician"><input className="input-base" value={form.technician_name} onChange={(e) => set("technician_name", e.target.value)} /></Field>
           <Field label="Date"><input className="input-base" type="date" value={form.date} onChange={(e) => set("date", e.target.value)} /></Field>
@@ -158,62 +159,19 @@ export default function WorkOrderForm() {
                     <p className="text-xs text-muted-foreground">No parts logged for this subject.</p>
                   ) : (
                     <div className="space-y-2">
-                      {s.parts_used.map((p, pIdx) => {
-                        const linked = p.inventory_item_id ? items.find((it) => it.id === p.inventory_item_id) : null;
-                        return (
-                          <div key={pIdx} className="grid grid-cols-1 sm:grid-cols-[1fr_90px_auto] gap-2 items-start">
-                            {items.length === 0 ? (
-                              <div className="flex items-center justify-between gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-200">
-                                <span>No tienes esta parte en tu inventario — agrégala primero</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setQuickAddFor({ sIdx: idx, pIdx })}
-                                  className="shrink-0 inline-flex items-center gap-1 rounded-md bg-amber-500/20 px-2 py-1 font-semibold text-amber-100 hover:bg-amber-500/30"
-                                >
-                                  <PackagePlus className="h-3.5 w-3.5" /> Agregar
-                                </button>
-                              </div>
-                            ) : (
-                              <div>
-                                <Select
-                                  value={p.inventory_item_id || undefined}
-                                  onValueChange={(v) => {
-                                    // Radix's hidden native <select> mirror can emit a spurious
-                                    // change with an empty value while re-syncing after the
-                                    // controlled value changes externally (e.g. right after the
-                                    // quick-add dialog sets it) — never a real user selection, so
-                                    // ignore it instead of clearing the row.
-                                    if (!v) return;
-                                    if (v === "__add_new__") setQuickAddFor({ sIdx: idx, pIdx });
-                                    else setPart(idx, pIdx, "inventory_item_id", v);
-                                  }}
-                                >
-                                  <SelectTrigger className="input-base h-[42px]">
-                                    <SelectValue placeholder="Select part…">
-                                      {linked ? `${linked.name}${linked.part_number ? ` · ${linked.part_number}` : ""} (${linked.stock} in stock)` : null}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="__add_new__" className="text-primary font-semibold">
-                                      + Agregar nueva parte
-                                    </SelectItem>
-                                    {items.map((it) => (
-                                      <SelectItem key={it.id} value={it.id}>
-                                        {it.name} {it.part_number ? `· ${it.part_number}` : ""} ({it.stock} in stock)
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                {linked && Number(linked.stock) <= 0 && (
-                                  <p className="mt-1 text-[11px] text-red-300">This part has 0 in stock.</p>
-                                )}
-                              </div>
-                            )}
-                            <input className="input-base" type="number" min="1" placeholder="Qty" value={p.quantity} onChange={(e) => setPart(idx, pIdx, "quantity", Number(e.target.value))} />
-                            <button type="button" onClick={() => removePart(idx, pIdx)} className="grid h-[42px] w-10 place-items-center rounded-md border border-white/10 text-red-300 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
-                          </div>
-                        );
-                      })}
+                      {s.parts_used.map((p, pIdx) => (
+                        <div key={pIdx} className="grid grid-cols-1 sm:grid-cols-[1fr_90px_auto] gap-2 items-start">
+                          <InventoryItemPicker
+                            items={items}
+                            categories={categories}
+                            value={p.inventory_item_id}
+                            onSelect={(item) => setPart(idx, pIdx, "inventory_item_id", item.id)}
+                            onItemCreated={(newItem) => setItems((prev) => [newItem, ...prev])}
+                          />
+                          <input className="input-base" type="number" min="1" placeholder="Qty" value={p.quantity} onChange={(e) => setPart(idx, pIdx, "quantity", Number(e.target.value))} />
+                          <button type="button" onClick={() => removePart(idx, pIdx)} className="grid h-[42px] w-10 place-items-center rounded-md border border-white/10 text-red-300 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -231,61 +189,6 @@ export default function WorkOrderForm() {
           <Button type="submit" disabled={saving} className="gap-1.5"><Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Work Order"}</Button>
         </div>
       </form>
-
-      <QuickAddPartDialog
-        open={Boolean(quickAddFor)}
-        onOpenChange={(open) => !open && setQuickAddFor(null)}
-        categories={categories}
-        onCreated={handlePartCreated}
-      />
     </div>
-  );
-}
-
-// Inline "add a part without leaving the work order" flow — same fields as
-// Inventory.jsx's ItemForm, but auto-selects the new part into whichever
-// parts_used row triggered it instead of navigating away.
-function QuickAddPartDialog({ open, onOpenChange, categories, onCreated }) {
-  const [form, setForm] = useState({ name: "", part_number: "", cost: "", category: "" });
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (open) setForm({ name: "", part_number: "", cost: "", category: "" });
-  }, [open]);
-
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const payload = { ...form, stock: 1, cost: Number(form.cost) || 0 };
-      const item = await api.entities.InventoryItem.create(payload);
-      onCreated(item);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle className="font-display uppercase tracking-wide">Add New Part</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="grid grid-cols-2 gap-3">
-          <div className="col-span-2"><Field label="Name *"><input className="input-base" required value={form.name} onChange={(e) => set("name", e.target.value)} /></Field></div>
-          <Field label="Part #"><input className="input-base mono" value={form.part_number} onChange={(e) => set("part_number", e.target.value)} /></Field>
-          <Field label="Category">
-            <input className="input-base" list="wo-quick-add-cat-list" value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Type or pick" />
-            <datalist id="wo-quick-add-cat-list">{categories.map((c) => <option key={c.id} value={c.name} />)}</datalist>
-          </Field>
-          <Field label="Cost ($)"><input className="input-base" type="number" step="0.01" value={form.cost} onChange={(e) => set("cost", e.target.value)} /></Field>
-          <p className="col-span-2 text-[11px] text-muted-foreground">Starting stock will be set to 1 — adjust it later from Inventory.</p>
-          <DialogFooter className="col-span-2 mt-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Add & Select"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }

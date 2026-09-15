@@ -21,6 +21,9 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
 
   const submit = async (e) => {
     e.preventDefault();
+    // See ClientForm.jsx's submit — Radix Dialog portals the DOM but React
+    // still bubbles the submit through the component tree to an outer form.
+    e.stopPropagation();
     setSaving(true);
     try {
       const payload = {
@@ -31,9 +34,8 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
         engine_hours: form.engine_hours !== "" ? Number(form.engine_hours) : null,
         vin_last8: form.vin ? form.vin.slice(-8) : form.vin_last8,
       };
-      if (vehicle?.id) await api.entities.Vehicle.update(vehicle.id, payload);
-      else await api.entities.Vehicle.create(payload);
-      onSaved?.();
+      const saved = vehicle?.id ? await api.entities.Vehicle.update(vehicle.id, payload) : await api.entities.Vehicle.create(payload);
+      onSaved?.(saved);
       onOpenChange(false);
     } finally {
       setSaving(false);

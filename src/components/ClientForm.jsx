@@ -16,11 +16,15 @@ export default function ClientForm({ open, onOpenChange, onSaved, client }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    // Radix Dialog portals this form's DOM outside the page's own <form>,
+    // but React still bubbles the submit through the *component* tree — so
+    // without this, saving a client quick-added from inside another form
+    // (WorkOrderForm, InvoiceForm) also fires that outer form's onSubmit.
+    e.stopPropagation();
     setSaving(true);
     try {
-      if (client?.id) await api.entities.Client.update(client.id, form);
-      else await api.entities.Client.create(form);
-      onSaved?.();
+      const saved = client?.id ? await api.entities.Client.update(client.id, form) : await api.entities.Client.create(form);
+      onSaved?.(saved);
       onOpenChange(false);
     } finally {
       setSaving(false);
