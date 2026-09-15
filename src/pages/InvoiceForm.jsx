@@ -53,8 +53,8 @@ export default function InvoiceForm() {
         (wo.subjects || []).forEach((s) => {
           if (s.description) lines.push({ description: s.description, quantity: 1, unit_price: 0 });
           (s.parts_used || []).forEach((p) => {
-            const match = items.find((it) => (it.part_number && it.part_number === p.part_number) || (it.name && it.name === p.name));
-            lines.push({ description: p.name || p.part_number || "Part", quantity: Number(p.quantity) || 1, unit_price: match ? Number(match.cost) || 0 : 0 });
+            const match = items.find((it) => it.id === p.inventory_item_id);
+            lines.push({ description: p.name || match?.name || p.part_number || "Part", quantity: Number(p.quantity) || 1, unit_price: match ? Number(match.cost) || 0 : 0 });
           });
         });
         baseForm.lines = lines.length ? lines : [{ description: "", quantity: 1, unit_price: 0 }];
