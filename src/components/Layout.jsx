@@ -83,7 +83,7 @@ export default function Layout() {
       )}
 
       {/* Main */}
-      <div className={`flex-1 flex flex-col min-w-0 ${!isMobile ? "lg:ml-16" : ""}`}>
+      <div className={`flex-1 flex flex-col min-w-0 ${!isMobile ? "md:ml-16" : ""}`}>
         {/* Top header */}
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/10 bg-[hsl(var(--sidebar-background))]/90 px-3 backdrop-blur-md">
           <Link to="/" className="flex items-center gap-2 lg:hidden">

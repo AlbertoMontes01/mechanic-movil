@@ -92,7 +92,7 @@ function tableRows(doc, x, y, cols, rows, pageH, margin, headerLabels) {
     }
     if (ri % 2 === 0) {
       doc.setFillColor(248, 250, 252);
-      doc.rect(x, cy, cols.reduce((s, c) => s + c, 0), rowH, "F");
+      doc.rect(x, cy, cols.reduce((s, c) => s + c.w, 0), rowH, "F");
     }
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
@@ -185,7 +185,7 @@ export function generateInvoicePDF(inv, client, vehicle, settings) {
   y = drawClientVehicle(doc, margin, y, pageW, margin, client, vehicle);
 
   const colW = { d: pageW - margin * 2 - 18 - 22 - 26, qty: 18, price: 26, total: 22 };
-  const cols = [colW.d, colW.qty, colW.price, colW.total];
+  const cols = [{ w: colW.d }, { w: colW.qty }, { w: colW.price }, { w: colW.total }];
   const labels = ["DESCRIPTION", "QTY", "UNIT PRICE", "TOTAL"];
   y = tableHeader(doc, margin, y, cols, labels);
 

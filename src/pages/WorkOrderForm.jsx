@@ -178,11 +178,21 @@ export default function WorkOrderForm() {
                                 <Select
                                   value={p.inventory_item_id || undefined}
                                   onValueChange={(v) => {
+                                    // Radix's hidden native <select> mirror can emit a spurious
+                                    // change with an empty value while re-syncing after the
+                                    // controlled value changes externally (e.g. right after the
+                                    // quick-add dialog sets it) — never a real user selection, so
+                                    // ignore it instead of clearing the row.
+                                    if (!v) return;
                                     if (v === "__add_new__") setQuickAddFor({ sIdx: idx, pIdx });
                                     else setPart(idx, pIdx, "inventory_item_id", v);
                                   }}
                                 >
-                                  <SelectTrigger className="input-base h-[42px]"><SelectValue placeholder="Select part…" /></SelectTrigger>
+                                  <SelectTrigger className="input-base h-[42px]">
+                                    <SelectValue placeholder="Select part…">
+                                      {linked ? `${linked.name}${linked.part_number ? ` · ${linked.part_number}` : ""} (${linked.stock} in stock)` : null}
+                                    </SelectValue>
+                                  </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="__add_new__" className="text-primary font-semibold">
                                       + Agregar nueva parte
