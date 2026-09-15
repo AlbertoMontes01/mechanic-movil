@@ -4,16 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { api } from "@/api/client";
 import { Field } from "@/components/shared";
+import ClientPicker from "@/components/ClientPicker";
 
 const TYPES = ["Truck", "Car", "SUV", "Van", "Motorcycle", "Other"];
 
-export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clientId }) {
+// clientId: pass this when the vehicle's owner is already known (e.g. from
+// ClientDetail's "Add Vehicle") — no client picker is shown. Omit it (and
+// pass clients/onClientCreated instead) to let the user pick or quick-add
+// the client right here, e.g. from the standalone Vehicles list page.
+export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clientId, clients, onClientCreated }) {
   const [form, setForm] = useState({ vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "" });
   const [saving, setSaving] = useState(false);
+  const [pickedClientId, setPickedClientId] = useState("");
 
   useEffect(() => {
     if (open) {
       setForm(vehicle ? { ...vehicle, odometer: vehicle.odometer ?? "", engine_hours: vehicle.engine_hours ?? "", year: vehicle.year ?? "" } : { vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "" });
+      setPickedClientId(vehicle?.client_id || "");
     }
   }, [open, vehicle]);
 
@@ -28,7 +35,7 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
     try {
       const payload = {
         ...form,
-        client_id: clientId || form.client_id,
+        client_id: clientId || pickedClientId,
         year: form.year ? Number(form.year) : null,
         odometer: form.odometer !== "" ? Number(form.odometer) : null,
         engine_hours: form.engine_hours !== "" ? Number(form.engine_hours) : null,
@@ -49,6 +56,18 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
           <DialogTitle className="font-display uppercase tracking-wide">{vehicle ? "Edit Vehicle" : "New Vehicle"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="grid grid-cols-2 gap-3">
+          {!clientId && (
+            <div className="col-span-2">
+              <Field label="Client *">
+                <ClientPicker
+                  clients={clients || []}
+                  value={pickedClientId}
+                  onSelect={(c) => setPickedClientId(c.id)}
+                  onClientCreated={onClientCreated}
+                />
+              </Field>
+            </div>
+          )}
           <Field label="Type">
             <Select value={form.vehicle_type} onValueChange={(v) => set("vehicle_type", v)}>
               <SelectTrigger className="input-base h-[42px]"><SelectValue /></SelectTrigger>
@@ -65,7 +84,7 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
           <Field label="Engine Hours"><input className="input-base" type="number" value={form.engine_hours} onChange={(e) => set("engine_hours", e.target.value)} /></Field>
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save Vehicle"}</Button>
+            <Button type="submit" disabled={saving || (!clientId && !pickedClientId)}>{saving ? "Saving…" : "Save Vehicle"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

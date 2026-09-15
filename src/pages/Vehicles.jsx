@@ -1,18 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { PageHeader, EmptyState, Loader, Card } from "@/components/shared";
-import { Search, Car } from "lucide-react";
+import VehicleForm from "@/components/VehicleForm";
+import { Plus, Search, Car } from "lucide-react";
 
 export default function Vehicles() {
   const [q, setQ] = useState("");
-  const { data, loading } = useAsync(() =>
+  const [open, setOpen] = useState(false);
+  const { data, loading, reload } = useAsync(() =>
     Promise.all([api.entities.Vehicle.list(), api.entities.Client.list()])
   );
 
+  const [clients, setClients] = useState([]);
+  useEffect(() => {
+    if (data) setClients(data[1]);
+  }, [data]);
+
   if (loading) return <Loader />;
-  const [vehicles, clients] = data;
+  const [vehicles] = data;
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c]));
 
   const ql = q.toLowerCase();
@@ -31,7 +38,15 @@ export default function Vehicles() {
 
   return (
     <div>
-      <PageHeader title="Vehicles" subtitle={`${vehicles.length} total`} />
+      <PageHeader
+        title="Vehicles"
+        subtitle={`${vehicles.length} total`}
+        actions={
+          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+            <Plus className="h-4 w-4" /> New
+          </button>
+        }
+      />
 
       <div className="relative mb-4 max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -42,7 +57,10 @@ export default function Vehicles() {
         <EmptyState
           icon={Car}
           title={vehicles.length === 0 ? "No vehicles yet" : "No matches"}
-          hint={vehicles.length === 0 ? "Add a vehicle from a client's page to start tracking work." : "Try a different search."}
+          hint={vehicles.length === 0 ? "Add your first vehicle with the + New button." : "Try a different search."}
+          action={vehicles.length === 0 ? (
+            <button onClick={() => setOpen(true)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">+ New Vehicle</button>
+          ) : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -64,6 +82,14 @@ export default function Vehicles() {
           })}
         </div>
       )}
+
+      <VehicleForm
+        open={open}
+        onOpenChange={setOpen}
+        onSaved={reload}
+        clients={clients}
+        onClientCreated={(c) => setClients((prev) => [c, ...prev])}
+      />
     </div>
   );
 }
