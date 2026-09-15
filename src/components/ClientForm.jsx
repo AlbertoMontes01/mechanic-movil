@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { Field } from "@/components/shared";
 
 export default function ClientForm({ open, onOpenChange, onSaved, client }) {
@@ -18,8 +18,8 @@ export default function ClientForm({ open, onOpenChange, onSaved, client }) {
     e.preventDefault();
     setSaving(true);
     try {
-      if (client?.id) await base44.entities.Client.update(client.id, form);
-      else await base44.entities.Client.create(form);
+      if (client?.id) await api.entities.Client.update(client.id, form);
+      else await api.entities.Client.create(form);
       onSaved?.();
       onOpenChange(false);
     } finally {

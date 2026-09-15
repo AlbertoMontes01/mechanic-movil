@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { money, todayISO } from "@/lib/format";
@@ -19,11 +19,11 @@ export default function InvoiceForm() {
 
   const { data, loading } = useAsync(() =>
     Promise.all([
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
-      base44.entities.InventoryItem.list(),
-      isEdit ? base44.entities.Invoice.get(id) : Promise.resolve(null),
-      woId ? base44.entities.WorkOrder.get(woId) : Promise.resolve(null),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
+      api.entities.InventoryItem.list(),
+      isEdit ? api.entities.Invoice.get(id) : Promise.resolve(null),
+      woId ? api.entities.WorkOrder.get(woId) : Promise.resolve(null),
     ])
   , [id, woId]);
 
@@ -90,11 +90,11 @@ export default function InvoiceForm() {
         total,
       };
       let saved;
-      if (isEdit) saved = await base44.entities.Invoice.update(id, payload);
-      else saved = await base44.entities.Invoice.create(payload);
+      if (isEdit) saved = await api.entities.Invoice.update(id, payload);
+      else saved = await api.entities.Invoice.create(payload);
       // If created from a work order, mark it invoiced
       if (!isEdit && saved.work_order_id) {
-        try { await base44.entities.WorkOrder.update(saved.work_order_id, { status: "Invoiced" }); } catch (e) {}
+        try { await api.entities.WorkOrder.update(saved.work_order_id, { status: "Invoiced" }); } catch (e) {}
       }
       navigate(`/invoices/${saved.id}/view`);
     } finally {

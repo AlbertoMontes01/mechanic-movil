@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { money, fmtDate } from "@/lib/format";
 import { PageHeader, Loader, EmptyState, StatusBadge, Card } from "@/components/shared";
@@ -14,9 +14,9 @@ export default function Invoices() {
 
   const { data, loading } = useAsync(() =>
     Promise.all([
-      base44.entities.Invoice.list("-date", 200),
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
+      api.entities.Invoice.list("-date", 200),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
     ])
   );
 

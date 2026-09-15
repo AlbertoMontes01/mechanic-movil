@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { PageHeader, Loader, EmptyState, Card } from "@/components/shared";
 import ClientForm from "@/components/ClientForm";
@@ -16,8 +16,8 @@ export default function ClientDetail() {
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
-      base44.entities.Client.get(id),
-      base44.entities.Vehicle.filter({ client_id: id }),
+      api.entities.Client.get(id),
+      api.entities.Vehicle.filter({ client_id: id }),
     ])
   , [id]);
 
@@ -26,7 +26,7 @@ export default function ClientDetail() {
   const [client, vehicles] = data;
 
   const doDelete = async () => {
-    await base44.entities.Client.delete(id);
+    await api.entities.Client.delete(id);
     navigate("/clients");
   };
 

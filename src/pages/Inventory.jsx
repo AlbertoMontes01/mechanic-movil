@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { money } from "@/lib/format";
 import { PageHeader, Loader, EmptyState, Card, Field } from "@/components/shared";
@@ -16,8 +16,8 @@ export default function Inventory() {
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
-      base44.entities.InventoryItem.list("-updated_date", 300),
-      base44.entities.InventoryCategory.list(),
+      api.entities.InventoryItem.list("-updated_date", 300),
+      api.entities.InventoryCategory.list(),
     ])
   );
 
@@ -102,8 +102,8 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
     setSaving(true);
     try {
       const payload = { ...form, stock: Number(form.stock) || 0, cost: Number(form.cost) || 0 };
-      if (item?.id) await base44.entities.InventoryItem.update(item.id, payload);
-      else await base44.entities.InventoryItem.create(payload);
+      if (item?.id) await api.entities.InventoryItem.update(item.id, payload);
+      else await api.entities.InventoryItem.create(payload);
       onSaved?.();
       onOpenChange(false);
     } finally {
@@ -143,7 +143,7 @@ function CategoryManager({ open, onOpenChange, categories, onSaved }) {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await base44.entities.InventoryCategory.create({ name: name.trim() });
+      await api.entities.InventoryCategory.create({ name: name.trim() });
       setName("");
       onSaved?.();
     } finally {
@@ -152,7 +152,7 @@ function CategoryManager({ open, onOpenChange, categories, onSaved }) {
   };
 
   const remove = async (id) => {
-    await base44.entities.InventoryCategory.delete(id);
+    await api.entities.InventoryCategory.delete(id);
     onSaved?.();
   };
 

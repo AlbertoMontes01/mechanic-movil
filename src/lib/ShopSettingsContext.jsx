@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 
 const ShopSettingsContext = createContext(null);
 
@@ -9,7 +9,7 @@ export function ShopSettingsProvider({ children }) {
 
   const load = useCallback(async () => {
     try {
-      const list = await base44.entities.ShopSettings.list();
+      const list = await api.entities.ShopSettings.list();
       if (list.length > 0) setSettings(list[0]);
       else setSettings(null);
     } catch (e) {
@@ -23,11 +23,11 @@ export function ShopSettingsProvider({ children }) {
 
   const save = useCallback(async (data) => {
     if (settings?.id) {
-      const updated = await base44.entities.ShopSettings.update(settings.id, data);
+      const updated = await api.entities.ShopSettings.update(settings.id, data);
       setSettings(updated);
       return updated;
     } else {
-      const created = await base44.entities.ShopSettings.create(data);
+      const created = await api.entities.ShopSettings.create(data);
       setSettings(created);
       return created;
     }

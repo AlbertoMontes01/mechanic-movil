@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { todayISO, fmtDate, uid } from "@/lib/format";
 import { PageHeader, Loader, Field, Card } from "@/components/shared";
@@ -17,10 +17,10 @@ export default function WorkOrderForm() {
 
   const { data, loading } = useAsync(() =>
     Promise.all([
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
-      base44.auth.me(),
-      isEdit ? base44.entities.WorkOrder.get(id) : Promise.resolve(null),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
+      api.auth.me(),
+      isEdit ? api.entities.WorkOrder.get(id) : Promise.resolve(null),
     ])
   , [id]);
 
@@ -76,8 +76,8 @@ export default function WorkOrderForm() {
     try {
       const payload = { ...form, subjects: form.subjects.filter((s) => s.description || s.note || s.parts_used.length) };
       let saved;
-      if (isEdit) saved = await base44.entities.WorkOrder.update(id, payload);
-      else saved = await base44.entities.WorkOrder.create(payload);
+      if (isEdit) saved = await api.entities.WorkOrder.update(id, payload);
+      else saved = await api.entities.WorkOrder.create(payload);
       navigate(`/work-orders/${saved.id}/view`);
     } finally {
       setSaving(false);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { fmtDate } from "@/lib/format";
@@ -16,9 +16,9 @@ export default function WorkOrderDetail() {
 
   const { data, loading } = useAsync(() =>
     Promise.all([
-      base44.entities.WorkOrder.get(id),
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
+      api.entities.WorkOrder.get(id),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
     ])
   , [id]);
 
@@ -29,7 +29,7 @@ export default function WorkOrderDetail() {
   const vehicle = vehicles.find((v) => v.id === wo.vehicle_id);
 
   const doDelete = async () => {
-    await base44.entities.WorkOrder.delete(id);
+    await api.entities.WorkOrder.delete(id);
     navigate("/work-orders");
   };
 

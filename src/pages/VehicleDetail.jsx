@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { money, fmtDate } from "@/lib/format";
@@ -20,10 +20,10 @@ export default function VehicleDetail() {
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
-      base44.entities.Vehicle.get(id),
-      base44.entities.InventoryItem.list(),
-      base44.entities.WorkOrder.filter({ vehicle_id: id }),
-      base44.entities.Invoice.filter({ vehicle_id: id }),
+      api.entities.Vehicle.get(id),
+      api.entities.InventoryItem.list(),
+      api.entities.WorkOrder.filter({ vehicle_id: id }),
+      api.entities.Invoice.filter({ vehicle_id: id }),
     ])
   , [id]);
 
@@ -49,7 +49,7 @@ export default function VehicleDetail() {
   const saveParts = async () => {
     setSavingParts(true);
     try {
-      await base44.entities.Vehicle.update(id, { common_parts: parts });
+      await api.entities.Vehicle.update(id, { common_parts: parts });
       reload();
     } finally {
       setSavingParts(false);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { money, fmtDate, todayISO } from "@/lib/format";
@@ -13,11 +13,11 @@ export default function Home() {
   const [tab, setTab] = useState("In Progress");
   const { data, loading } = useAsync(() =>
     Promise.all([
-      base44.entities.WorkOrder.list("-date", 100),
-      base44.entities.Invoice.list("-date", 100),
-      base44.entities.InventoryItem.list(),
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
+      api.entities.WorkOrder.list("-date", 100),
+      api.entities.Invoice.list("-date", 100),
+      api.entities.InventoryItem.list(),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
     ])
   );
 

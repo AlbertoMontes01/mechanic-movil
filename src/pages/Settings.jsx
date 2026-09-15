@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
-import { Image } from "@/components/ui/image";
 import { Button } from "@/components/ui/button";
 import { Upload, Save, Wrench } from "lucide-react";
 
@@ -26,7 +25,7 @@ export default function Settings() {
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
+      const { file_url } = await api.integrations.Core.UploadPublicFile({ file });
       set("logo_url", file_url);
     } finally {
       setUploading(false);
@@ -55,7 +54,7 @@ export default function Settings() {
             <div className="mt-2 flex items-center gap-4">
               <div className="grid h-16 w-16 place-items-center rounded-md bg-primary/15 border border-white/10 overflow-hidden">
                 {form.logo_url ? (
-                  <Image src={form.logo_url} alt="logo" className="h-full w-full object-cover" fittingType="fill" />
+                  <img src={form.logo_url} alt="logo" className="h-full w-full object-cover" />
                 ) : (
                   <Wrench className="h-7 w-7 text-primary" />
                 )}

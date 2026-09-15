@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { PageHeader, EmptyState, Loader } from "@/components/shared";
 import ClientForm from "@/components/ClientForm";
@@ -8,7 +8,7 @@ import { Plus, Search, Users } from "lucide-react";
 export default function Clients() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const { data, loading, reload } = useAsync(() => base44.entities.Client.list("-updated_date", 200));
+  const { data, loading, reload } = useAsync(() => api.entities.Client.list("-updated_date", 200));
 
   const clients = (data || []).filter((c) =>
     !q || c.name?.toLowerCase().includes(q.toLowerCase()) || c.phone?.includes(q) || c.email?.toLowerCase().includes(q.toLowerCase())

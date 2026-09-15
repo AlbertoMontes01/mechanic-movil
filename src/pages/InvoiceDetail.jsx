@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { money, fmtDate } from "@/lib/format";
@@ -16,9 +16,9 @@ export default function InvoiceDetail() {
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
-      base44.entities.Invoice.get(id),
-      base44.entities.Client.list(),
-      base44.entities.Vehicle.list(),
+      api.entities.Invoice.get(id),
+      api.entities.Client.list(),
+      api.entities.Vehicle.list(),
     ])
   , [id]);
 
@@ -29,12 +29,12 @@ export default function InvoiceDetail() {
   const vehicle = vehicles.find((v) => v.id === inv.vehicle_id);
 
   const togglePaid = async () => {
-    await base44.entities.Invoice.update(id, { status: inv.status === "paid" ? "pending" : "paid" });
+    await api.entities.Invoice.update(id, { status: inv.status === "paid" ? "pending" : "paid" });
     reload();
   };
 
   const doDelete = async () => {
-    await base44.entities.Invoice.delete(id);
+    await api.entities.Invoice.delete(id);
     navigate("/invoices");
   };
 

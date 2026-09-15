@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { Field } from "@/components/shared";
 
 const TYPES = ["Truck", "Car", "SUV", "Van", "Motorcycle", "Other"];
@@ -31,8 +31,8 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
         engine_hours: form.engine_hours !== "" ? Number(form.engine_hours) : null,
         vin_last8: form.vin ? form.vin.slice(-8) : form.vin_last8,
       };
-      if (vehicle?.id) await base44.entities.Vehicle.update(vehicle.id, payload);
-      else await base44.entities.Vehicle.create(payload);
+      if (vehicle?.id) await api.entities.Vehicle.update(vehicle.id, payload);
+      else await api.entities.Vehicle.create(payload);
       onSaved?.();
       onOpenChange(false);
     } finally {
