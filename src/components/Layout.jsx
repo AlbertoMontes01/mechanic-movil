@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Package, FileText, Settings as SettingsIcon,
+  LayoutDashboard, Users, Car, Package, FileText, Settings as SettingsIcon,
   Plus, Wrench, ClipboardList, X, Search,
 } from "lucide-react";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/clients", label: "Clients", icon: Users },
+  { to: "/vehicles", label: "Vehicles", icon: Car },
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/work-orders", label: "Work Orders", icon: ClipboardList },
   { to: "/invoices", label: "Invoices", icon: FileText },

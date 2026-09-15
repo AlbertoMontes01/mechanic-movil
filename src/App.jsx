@@ -18,6 +18,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
 import Clients from '@/pages/Clients';
 import ClientDetail from '@/pages/ClientDetail';
+import Vehicles from '@/pages/Vehicles';
 import VehicleDetail from '@/pages/VehicleDetail';
 import Inventory from '@/pages/Inventory';
 import WorkOrders from '@/pages/WorkOrders';
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
+          <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/vehicles/:id" element={<VehicleDetail />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/work-orders" element={<WorkOrders />} />
