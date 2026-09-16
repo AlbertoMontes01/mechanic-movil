@@ -1,36 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { api } from "@/api/client";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { Upload, Save, Wrench } from "lucide-react";
+import { Save } from "lucide-react";
 
 export default function Settings() {
   const { settings, save, loading, refresh } = useShopSettings();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (settings) setForm({ shop_name: settings.shop_name || "", logo_url: settings.logo_url || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0 });
-    else if (!loading) setForm({ shop_name: "", logo_url: "", phone: "", address: "", tax_rate: 0 });
+    if (settings) setForm({ shop_name: settings.shop_name || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0 });
+    else if (!loading) setForm({ shop_name: "", phone: "", address: "", tax_rate: 0 });
   }, [settings, loading]);
 
   if (loading || !form) return <Loader />;
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const onLogo = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const { file_url } = await api.integrations.Core.UploadPublicFile({ file });
-      set("logo_url", file_url);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -49,23 +35,6 @@ export default function Settings() {
       <form onSubmit={submit} className="max-w-lg space-y-4">
         <Card className="p-4">
           <Field label="Shop Name *"><input className="input-base" required value={form.shop_name} onChange={(e) => set("shop_name", e.target.value)} /></Field>
-          <div className="mt-3">
-            <span className="field-label">Logo</span>
-            <div className="mt-2 flex items-center gap-4">
-              <div className="grid h-16 w-16 place-items-center rounded-md bg-primary/15 border border-white/10 overflow-hidden">
-                {form.logo_url ? (
-                  <img src={form.logo_url} alt="logo" className="h-full w-full object-cover" />
-                ) : (
-                  <Wrench className="h-7 w-7 text-primary" />
-                )}
-              </div>
-              <label className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer hover:bg-white/5">
-                <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload logo"}
-                <input type="file" accept="image/*" className="hidden" onChange={onLogo} />
-              </label>
-              {form.logo_url && <button type="button" onClick={() => set("logo_url", "")} className="text-xs text-red-300 hover:underline">Remove</button>}
-            </div>
-          </div>
         </Card>
 
         <Card className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">

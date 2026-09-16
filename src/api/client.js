@@ -1,7 +1,6 @@
 // Talks to our own Express/Prisma backend. Shaped as
-// api.entities.X.list/get/filter/create/update/delete, api.auth.*,
-// api.integrations.Core.UploadPublicFile so the pages that use it stay
-// simple and consistent across resources.
+// api.entities.X.list/get/filter/create/update/delete, api.auth.* so the
+// pages that use it stay simple and consistent across resources.
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const TOKEN_KEY = 'mechanic_movil_token';
@@ -16,16 +15,16 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function request(path, { method = 'GET', body, isForm = false } = {}) {
+async function request(path, { method = 'GET', body } = {}) {
   const headers = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (!isForm && body !== undefined) headers['Content-Type'] = 'application/json';
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers,
-    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
 
   if (res.status === 204) return null;
@@ -92,20 +91,10 @@ export const api = {
       return user;
     },
     logout: () => clearToken(),
-    // TODO: wire these once a transactional email provider is chosen —
-    // backend endpoints are not implemented yet (see auth.routes.js TODOs).
+    // The reset link is logged to the backend console rather than emailed —
+    // no transactional email provider is wired up yet (see auth.routes.js).
     resetPasswordRequest: (email) => request('/auth/forgot-password', { method: 'POST', body: { email } }),
     resetPassword: ({ resetToken, newPassword }) =>
       request('/auth/reset-password', { method: 'POST', body: { resetToken, newPassword } }),
-  },
-  integrations: {
-    Core: {
-      UploadPublicFile: async ({ file }) => {
-        const form = new FormData();
-        form.append('file', file);
-        const data = await request('/shop-settings/logo', { method: 'POST', body: form, isForm: true });
-        return { file_url: data.file_url };
-      },
-    },
   },
 };
