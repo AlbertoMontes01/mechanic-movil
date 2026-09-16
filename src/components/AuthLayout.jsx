@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
@@ -17,6 +18,11 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         {footer && (
           <p className="text-center text-sm text-muted-foreground mt-6">{footer}</p>
         )}
+        <p className="text-center text-xs text-muted-foreground/70 mt-4">
+          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+          {" · "}
+          <Link to="/terms" className="hover:underline">Terms of Service</Link>
+        </p>
       </div>
     </div>
   );

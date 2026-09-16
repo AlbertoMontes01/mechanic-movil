@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
@@ -60,6 +61,12 @@ export default function Settings() {
           <LogOut className="h-4 w-4" /> Log out
         </button>
       </Card>
+
+      <p className="max-w-lg text-xs text-muted-foreground/70 mt-4 text-center">
+        <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+        {" · "}
+        <Link to="/terms" className="hover:underline">Terms of Service</Link>
+      </p>
     </div>
   );
 }
