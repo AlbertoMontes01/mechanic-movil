@@ -22,28 +22,39 @@ export const suggestedPrice = (cost, markupPct) => {
   return c * (1 + m / 100);
 };
 
-// Standard tiered markup: cheaper parts get a much higher percentage
-// (a $5 part marked up only 10% isn't worth the trip to go get it) while
-// expensive parts get a smaller percentage (the dollar margin is already
-// large). Each tier's upper bound is inclusive.
+// Standard tiered markup: cheaper parts get a much higher percentage (a
+// $2.19 fitting marked up 35% is only $0.77 more -- not worth the trip --
+// so it needs closer to 100%) while expensive parts get a smaller
+// percentage (the dollar margin is already large on its own). Each tier is
+// itself a range rather than one flat number, since real shops quote a
+// range too; the tier's upper bound is inclusive.
 const MARKUP_TIERS = [
-  { max: 10, pct: 100 },
-  { max: 25, pct: 80 },
-  { max: 50, pct: 70 },
-  { max: 100, pct: 60 },
-  { max: 200, pct: 50 },
-  { max: 300, pct: 40 },
-  { max: 500, pct: 35 },
-  { max: 750, pct: 30 },
-  { max: 1000, pct: 25 },
-  { max: 1500, pct: 20 },
-  { max: 2000, pct: 15 },
+  { costMax: 10, pctMin: 75, pctMax: 100 },
+  { costMax: 25, pctMin: 60, pctMax: 75 },
+  { costMax: 50, pctMin: 45, pctMax: 60 },
+  { costMax: 100, pctMin: 35, pctMax: 45 },
+  { costMax: 250, pctMin: 30, pctMax: 35 },
+  { costMax: 500, pctMin: 25, pctMax: 30 },
+  { costMax: 1000, pctMin: 20, pctMax: 25 },
 ];
-const OVER_TIER_PCT = 12.5; // $2,000+: table says "10-15%" -- split the difference
+const OVER_TIER = { pctMin: 15, pctMax: 20 }; // $1,000+
 
-export const suggestedMarkupPct = (cost) => {
+function markupTierFor(cost) {
   const c = Number(cost);
   if (!Number.isFinite(c) || c <= 0) return null;
-  const tier = MARKUP_TIERS.find((t) => c <= t.max);
-  return tier ? tier.pct : OVER_TIER_PCT;
+  return MARKUP_TIERS.find((t) => c <= t.costMax) || OVER_TIER;
+}
+
+// The midpoint of the tier's range -- used as the single suggested number
+// (the placeholder), since the input can only show one value at a time.
+export const suggestedMarkupPct = (cost) => {
+  const tier = markupTierFor(cost);
+  return tier ? (tier.pctMin + tier.pctMax) / 2 : null;
+};
+
+// The tier's full range as shown in the reference table, e.g. "60-75%" --
+// for display alongside the single suggested number, not instead of it.
+export const suggestedMarkupRange = (cost) => {
+  const tier = markupTierFor(cost);
+  return tier ? `${tier.pctMin}-${tier.pctMax}%` : null;
 };

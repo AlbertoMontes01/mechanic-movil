@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Field } from "@/components/shared";
-import { suggestedPrice, suggestedMarkupPct } from "@/lib/format";
+import { suggestedPrice, suggestedMarkupPct, suggestedMarkupRange } from "@/lib/format";
 
 // Cost and price are independent, always-editable fields -- markup is only
 // a calculator to suggest a price from a cost, never stored itself. The
@@ -13,6 +13,7 @@ import { suggestedPrice, suggestedMarkupPct } from "@/lib/format";
 export default function CostPriceMarkupFields({ cost, price, onCostChange, onPriceChange }) {
   const [markup, setMarkup] = useState("");
   const tierMarkup = suggestedMarkupPct(cost);
+  const tierRange = suggestedMarkupRange(cost);
   const effectiveMarkup = markup === "" ? tierMarkup : markup;
   const suggestion = suggestedPrice(cost, effectiveMarkup);
 
@@ -25,7 +26,7 @@ export default function CostPriceMarkupFields({ cost, price, onCostChange, onPri
         label="Markup (%)"
         hint={
           suggestion
-            ? `Ej: $${Number(cost).toFixed(2)} + ${effectiveMarkup}% = $${suggestion.toFixed(2)} sugerido`
+            ? `Rango sugerido ${tierRange} — ej: $${Number(cost).toFixed(2)} + ${effectiveMarkup}% = $${suggestion.toFixed(2)}`
             : "Margen sugerido según el costo"
         }
       >
