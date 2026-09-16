@@ -59,7 +59,7 @@ export default function Layout() {
             </div>
             {expanded && (
               <span className="font-display text-lg font-bold uppercase tracking-wide text-foreground truncate">
-                {settings?.shop_name || "MechField"}
+                {settings?.shop_name || "PitStop"}
               </span>
             )}
           </div>

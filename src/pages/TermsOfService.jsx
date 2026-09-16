@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const EFFECTIVE_DATE = "[EFFECTIVE DATE — e.g. January 1, 2026]";
-const COMPANY_NAME = "Alberto Montes, doing business as MechField";
+const EFFECTIVE_DATE = "September 16, 2026";
+const COMPANY_NAME = "Alberto Montes, doing business as PitStop";
 const CONTACT_EMAIL = "dav.vazquez1719@gmail.com";
 const GOVERNING_STATE = "Delaware";
 
@@ -14,17 +14,10 @@ export default function TermsOfService() {
         <h1 className="font-display text-3xl font-bold uppercase tracking-wide mt-2">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mt-1">Effective date: {EFFECTIVE_DATE}</p>
 
-        <div className="mt-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
-          <strong>MVP notice:</strong> These Terms of Service are a starting-point draft prepared for an
-          early-stage product launch. They are not a substitute for legal advice. Before relying on them in
-          production — and especially before scaling to significant user volume or handling disputes — have them
-          reviewed by a licensed attorney familiar with U.S. commercial and consumer-protection law.
-        </div>
-
         <div className="prose-legal mt-8 space-y-6 text-sm leading-relaxed text-foreground/90">
           <p>
             These Terms of Service ("Terms") are a legal agreement between you and {COMPANY_NAME} ("we," "us,"
-            "our") governing your access to and use of MechField, our software-as-a-service application for
+            "our") governing your access to and use of PitStop, our software-as-a-service application for
             managing clients, vehicles, inventory, work orders, and invoices for mobile and independent mechanics
             (the "Service"). By creating an account or otherwise using the Service, you agree to these Terms. If
             you do not agree, do not use the Service.

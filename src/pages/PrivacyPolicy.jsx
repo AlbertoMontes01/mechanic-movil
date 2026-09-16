@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const EFFECTIVE_DATE = "[EFFECTIVE DATE — e.g. January 1, 2026]";
-const COMPANY_NAME = "Alberto Montes, doing business as MechField";
+const EFFECTIVE_DATE = "September 16, 2026";
+const COMPANY_NAME = "Alberto Montes, doing business as PitStop";
 const CONTACT_EMAIL = "dav.vazquez1719@gmail.com";
 const GOVERNING_STATE = "Delaware";
 
@@ -14,17 +14,9 @@ export default function PrivacyPolicy() {
         <h1 className="font-display text-3xl font-bold uppercase tracking-wide mt-2">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mt-1">Effective date: {EFFECTIVE_DATE}</p>
 
-        <div className="mt-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
-          <strong>MVP notice:</strong> This Privacy Policy is a starting-point draft prepared for an early-stage
-          product launch. It is not a substitute for legal advice. Before relying on it in production — and
-          especially before scaling to significant user volume, handling data subject requests, or expanding
-          into new states or countries — have it reviewed by a licensed attorney familiar with U.S. privacy law
-          (and any other jurisdiction where you or your users are located).
-        </div>
-
         <div className="prose-legal mt-8 space-y-6 text-sm leading-relaxed text-foreground/90">
           <p>
-            {COMPANY_NAME} ("we," "us," or "our") provides MechField, a software-as-a-service application for
+            {COMPANY_NAME} ("we," "us," or "our") provides PitStop, a software-as-a-service application for
             independent and mobile mechanics to manage clients, vehicles, inventory, work orders, and invoices
             (the "Service"). This Privacy Policy explains what information we collect, how we use it, how we
             protect it, and the choices available to you.
