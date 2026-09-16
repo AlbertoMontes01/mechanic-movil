@@ -2,9 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const EFFECTIVE_DATE = "[EFFECTIVE DATE — e.g. January 1, 2026]";
-const COMPANY_NAME = "[YOUR COMPANY LEGAL NAME]";
+const COMPANY_NAME = "Alberto Montes, doing business as MechField";
 const CONTACT_EMAIL = "dav.vazquez1719@gmail.com";
-const GOVERNING_STATE = "[YOUR STATE]";
+const GOVERNING_STATE = "Delaware";
 
 export default function PrivacyPolicy() {
   return (
