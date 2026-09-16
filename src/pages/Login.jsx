@@ -76,9 +76,12 @@ export default function Login() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+            {/* Hidden until a transactional email provider is wired up —
+                the backend flow exists but has no way to deliver the reset
+                link to a real user outside of dev (see auth.routes.js). */}
+            {/* <Link to="/forgot-password" className="text-xs text-primary hover:underline">
               Forgot password?
-            </Link>
+            </Link> */}
           </div>
           <PasswordInput
             id="password"

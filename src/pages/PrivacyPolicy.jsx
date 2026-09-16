@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const EFFECTIVE_DATE = "[EFFECTIVE DATE — e.g. January 1, 2026]";
 const COMPANY_NAME = "[YOUR COMPANY LEGAL NAME]";
-const CONTACT_EMAIL = "[privacy@yourdomain.com]";
+const CONTACT_EMAIL = "dav.vazquez1719@gmail.com";
 const GOVERNING_STATE = "[YOUR STATE]";
 
 export default function PrivacyPolicy() {
