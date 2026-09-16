@@ -17,6 +17,7 @@ export default function VehicleDetail() {
   const [editVehicle, setEditVehicle] = useState(false);
   const [parts, setParts] = useState([]);
   const [savingParts, setSavingParts] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
@@ -60,6 +61,11 @@ export default function VehicleDetail() {
     generateVehicleHistoryPDF(vehicle, null, history.map((h) => ({ date: h.date, type: h.type, summary: h.summary, amount: h.amount })), settings);
   };
 
+  const doDelete = async () => {
+    await api.entities.Vehicle.delete(id);
+    navigate(`/clients/${vehicle.client_id}`);
+  };
+
   return (
     <div>
       <PageHeader
@@ -67,9 +73,15 @@ export default function VehicleDetail() {
         subtitle={`${vehicle.vehicle_type} · ${vehicle.plate || "no plate"}`}
         back="/clients"
         actions={
-          <button onClick={() => setEditVehicle(true)} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/5">
-            <Edit className="h-4 w-4" /> Edit
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditVehicle(true)} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/5">
+              <Edit className="h-4 w-4" /> Edit
+            </button>
+            <button onClick={() => (confirmDel ? doDelete() : setConfirmDel(true))} onBlur={() => setConfirmDel(false)}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm ${confirmDel ? "bg-red-500 text-white" : "border border-white/10 text-red-300 hover:bg-red-500/10"}`}>
+              <Trash2 className="h-4 w-4" /> {confirmDel ? "Confirm?" : "Delete"}
+            </button>
+          </div>
         }
       />
 

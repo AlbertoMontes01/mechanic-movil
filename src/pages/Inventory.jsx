@@ -14,6 +14,7 @@ export default function Inventory() {
   const [catOpen, setCatOpen] = useState(false);
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("all");
+  const [confirmDelId, setConfirmDelId] = useState(null);
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
@@ -30,6 +31,17 @@ export default function Inventory() {
 
   const openNew = () => { setEditing(null); setItemOpen(true); };
   const openEdit = (it) => { setEditing(it); setItemOpen(true); };
+
+  const removeItem = async (id) => {
+    try {
+      await api.entities.InventoryItem.delete(id);
+      reload();
+    } catch (err) {
+      alert(err.message || "Could not delete this part.");
+    } finally {
+      setConfirmDelId(null);
+    }
+  };
 
   return (
     <div>
@@ -69,7 +81,16 @@ export default function Inventory() {
                   {it.part_number && <p className="mono text-[11px] text-muted-foreground">{it.part_number}</p>}
                   {it.category && <span className="mt-1 inline-block text-[10px] uppercase tracking-wide text-muted-foreground bg-white/5 rounded px-1.5 py-0.5">{it.category}</span>}
                 </div>
-                <button onClick={() => openEdit(it)} className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-muted-foreground hover:text-foreground"><Edit className="h-3.5 w-3.5" /></button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button onClick={() => openEdit(it)} className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-muted-foreground hover:text-foreground"><Edit className="h-3.5 w-3.5" /></button>
+                  <button
+                    onClick={() => (confirmDelId === it.id ? removeItem(it.id) : setConfirmDelId(it.id))}
+                    onBlur={() => setConfirmDelId(null)}
+                    className={`grid h-8 place-items-center rounded-md px-2 text-xs font-semibold ${confirmDelId === it.id ? "bg-red-500 text-white" : "border border-white/10 text-red-300 hover:bg-red-500/10"}`}
+                  >
+                    {confirmDelId === it.id ? "Confirm?" : <Trash2 className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <span className={`mono text-sm font-bold px-2 py-0.5 rounded ${Number(it.stock) <= 0 ? "bg-red-500/20 text-red-300" : Number(it.stock) <= 3 ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"}`}>
