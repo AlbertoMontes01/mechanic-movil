@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { api, getToken, clearToken } from '@/api/client';
+import { api } from '@/api/client';
 
 const AuthContext = createContext(null);
 
@@ -13,21 +13,20 @@ export function AuthProvider({ children }) {
     window.location.href = '/login';
   }, []);
 
+  // Always attempts /auth/me, even with no local access token — a returning
+  // visitor may have nothing in localStorage (it was never here, or the
+  // previous 15-minute access token already expired) but still hold a
+  // valid httpOnly refresh cookie. api/client.js's request() transparently
+  // retries once via /auth/refresh on a 401, so this either resolves to a
+  // logged-in user or a clean "not authenticated" — no separate code path
+  // needed here for the "no token yet" case.
   const checkUserAuth = useCallback(async () => {
     setIsLoadingAuth(true);
-    if (!getToken()) {
-      setUser(null);
-      setAuthError({ type: 'auth_required' });
-      setAuthChecked(true);
-      setIsLoadingAuth(false);
-      return;
-    }
     try {
       const me = await api.auth.me();
       setUser(me);
       setAuthError(null);
     } catch {
-      clearToken();
       setUser(null);
       setAuthError({ type: 'auth_required' });
     } finally {
@@ -40,8 +39,8 @@ export function AuthProvider({ children }) {
     checkUserAuth();
   }, [checkUserAuth]);
 
-  const logout = useCallback(() => {
-    clearToken();
+  const logout = useCallback(async () => {
+    await api.auth.logout();
     setUser(null);
     navigateToLogin();
   }, [navigateToLogin]);

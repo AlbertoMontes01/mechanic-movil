@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, Car, Package, FileText, Settings as SettingsIcon,
-  Plus, Wrench, ClipboardList, X, Search,
+  Plus, Wrench, ClipboardList, X, Search, LogOut,
 } from "lucide-react";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
+import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const NAV = [
@@ -32,6 +33,7 @@ export default function Layout() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { settings } = useShopSettings();
+  const { logout } = useAuth();
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -80,6 +82,13 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-red-300 hover:bg-red-500/10 border-l-2 border-transparent transition-colors"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            {expanded && <span className="truncate">Log out</span>}
+          </button>
         </aside>
       )}
 

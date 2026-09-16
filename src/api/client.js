@@ -15,7 +15,32 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function request(path, { method = 'GET', body } = {}) {
+// Access tokens are short-lived (15m) by design — the long-lived credential
+// is a refresh token the backend holds in an httpOnly cookie (never
+// readable from JS, so an XSS bug can't steal a 30-day session, only
+// whatever's left of the current 15-minute access token). When a request
+// comes back 401, silently exchange that cookie for a new access token via
+// /auth/refresh and retry once before giving up. Concurrent 401s share one
+// in-flight refresh instead of each firing their own.
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_URL}/auth/refresh`, { method: 'POST', credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('refresh failed');
+        const data = await res.json();
+        setToken(data.token);
+        return data.token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+async function request(path, { method = 'GET', body, _retried = false } = {}) {
   const headers = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -24,8 +49,27 @@ async function request(path, { method = 'GET', body } = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers,
+    // Needed so the httpOnly refresh-token cookie (scoped to /api/auth) is
+    // sent/received — harmless for every other path, the browser just
+    // won't have a matching cookie to attach.
+    credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+
+  // /auth/me legitimately benefits from an auto-refresh retry (that's how a
+  // page load with an expired/missing access token silently restores the
+  // session via the cookie) — only exclude the endpoints where a 401 is
+  // either the normal outcome (bad login) or would recurse into itself.
+  const NO_RETRY_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout', '/auth/forgot-password', '/auth/reset-password'];
+  if (res.status === 401 && !_retried && !NO_RETRY_PATHS.some((p) => path.startsWith(p))) {
+    try {
+      await refreshAccessToken();
+      return request(path, { method, body, _retried: true });
+    } catch {
+      clearToken();
+      // fall through and let the original 401 response below report the error
+    }
+  }
 
   if (res.status === 204) return null;
 
@@ -90,7 +134,16 @@ export const api = {
       setToken(token);
       return user;
     },
-    logout: () => clearToken(),
+    logout: async () => {
+      try {
+        await request('/auth/logout', { method: 'POST' });
+      } finally {
+        // Always clear the local access token even if the network call
+        // fails — the important server-side revocation is best-effort here,
+        // but the client must stop presenting itself as logged in regardless.
+        clearToken();
+      }
+    },
     // The reset link is logged to the backend console rather than emailed —
     // no transactional email provider is wired up yet (see auth.routes.js).
     resetPasswordRequest: (email) => request('/auth/forgot-password', { method: 'POST', body: { email } }),

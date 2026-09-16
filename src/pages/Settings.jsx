@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
+import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, LogOut } from "lucide-react";
 
 export default function Settings() {
   const { settings, save, loading, refresh } = useShopSettings();
+  const { logout } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -47,6 +49,17 @@ export default function Settings() {
           <Button type="submit" disabled={saving} className="gap-1.5"><Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Settings"}</Button>
         </div>
       </form>
+
+      <Card className="max-w-lg p-4 mt-6">
+        <p className="field-label mb-2">Account</p>
+        <button
+          type="button"
+          onClick={logout}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm text-red-300 hover:bg-red-500/10"
+        >
+          <LogOut className="h-4 w-4" /> Log out
+        </button>
+      </Card>
     </div>
   );
 }
