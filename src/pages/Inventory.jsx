@@ -5,6 +5,7 @@ import { money } from "@/lib/format";
 import { PageHeader, Loader, EmptyState, Card, Field } from "@/components/shared";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
 import { Plus, Edit, Trash2, Package, Tag, Search } from "lucide-react";
 
 export default function Inventory() {
@@ -74,7 +75,7 @@ export default function Inventory() {
                 <span className={`mono text-sm font-bold px-2 py-0.5 rounded ${Number(it.stock) <= 0 ? "bg-red-500/20 text-red-300" : Number(it.stock) <= 3 ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"}`}>
                   {it.stock} in stock
                 </span>
-                <span className="text-sm text-muted-foreground">Cost {money(it.cost)}</span>
+                <span className="text-sm text-muted-foreground">Cost {money(it.cost)} · Price {money(it.price)}</span>
               </div>
             </Card>
           ))}
@@ -88,11 +89,11 @@ export default function Inventory() {
 }
 
 function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
-  const [form, setForm] = useState({ part_number: "", name: "", stock: "", cost: "", category: "" });
+  const [form, setForm] = useState({ part_number: "", name: "", stock: "", cost: "", price: "", category: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) setForm(item ? { ...item, stock: item.stock ?? "", cost: item.cost ?? "" } : { part_number: "", name: "", stock: "", cost: "", category: "" });
+    if (open) setForm(item ? { ...item, stock: item.stock ?? "", cost: item.cost ?? "", price: item.price ?? "" } : { part_number: "", name: "", stock: "", cost: "", price: "", category: "" });
   }, [open, item]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -101,7 +102,7 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, stock: Number(form.stock) || 0, cost: Number(form.cost) || 0 };
+      const payload = { ...form, stock: Number(form.stock) || 0, cost: Number(form.cost) || 0, price: Number(form.price) || 0 };
       if (item?.id) await api.entities.InventoryItem.update(item.id, payload);
       else await api.entities.InventoryItem.create(payload);
       onSaved?.();
@@ -123,7 +124,12 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
             <datalist id="cat-list">{categories.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </Field>
           <Field label="Stock"><input className="input-base" type="number" value={form.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
-          <Field label="Cost ($)"><input className="input-base" type="number" step="0.01" value={form.cost} onChange={(e) => set("cost", e.target.value)} /></Field>
+          <CostPriceMarkupFields
+            cost={form.cost}
+            price={form.price}
+            onCostChange={(v) => set("cost", v)}
+            onPriceChange={(v) => set("price", v)}
+          />
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>

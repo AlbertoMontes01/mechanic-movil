@@ -85,7 +85,7 @@ export default function InvoiceForm() {
               inventory_item_id: p.inventory_item_id || "",
               description: p.name || match?.name || p.part_number || "Part",
               quantity: Number(p.quantity) || 1,
-              unit_price: match ? Number(match.cost) || 0 : 0,
+              unit_price: match ? Number(match.price) || 0 : 0,
             });
           });
         });
@@ -104,7 +104,11 @@ export default function InvoiceForm() {
   const addLine = () => setForm((f) => ({ ...f, lines: [...f.lines, emptyServiceLine()] }));
   const removeLine = (idx) => setForm((f) => ({ ...f, lines: f.lines.filter((_, i) => i !== idx) }));
 
-  const computed = form.lines.map((l) => ({ ...l, total: (Number(l.quantity) || 0) * (Number(l.unit_price) || 0) }));
+  const computed = form.lines.map((l) => {
+    const quantity = Number(l.quantity) || 0;
+    const unit_price = Number(l.unit_price) || 0;
+    return { ...l, quantity, unit_price, total: quantity * unit_price };
+  });
   const subtotal = computed.reduce((s, l) => s + l.total, 0);
   const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
@@ -258,10 +262,10 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
             items={items}
             categories={categories}
             value={line.inventory_item_id}
-            onSelect={(item) => onChange({ inventory_item_id: item.id, description: item.name, unit_price: Number(item.cost) || 0 })}
+            onSelect={(item) => onChange({ inventory_item_id: item.id, description: item.name, unit_price: Number(item.price) || 0 })}
             onItemCreated={onItemCreated}
           />
-          <input className="input-base text-center" type="number" min="1" placeholder="Qty" value={line.quantity} onChange={(e) => onChange({ quantity: Number(e.target.value) })} />
+          <input className="input-base text-center" type="number" min="1" placeholder="Qty" value={line.quantity} onChange={(e) => onChange({ quantity: e.target.value })} />
         </div>
       ) : (
         <input className="input-base mb-2" placeholder="Service description (e.g. Oil change labor)" value={line.description} onChange={(e) => onChange({ description: e.target.value })} />
@@ -276,12 +280,12 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
           />
           {line.pricing_mode === "hourly" ? (
             <div className="flex items-center gap-1.5">
-              <input className="input-base mono w-24" type="number" step="0.01" placeholder="Rate/hr" value={line.unit_price} onChange={(e) => onChange({ unit_price: Number(e.target.value) })} />
+              <input className="input-base mono w-24" type="number" step="0.01" placeholder="Rate/hr" value={line.unit_price} onChange={(e) => onChange({ unit_price: e.target.value })} />
               <span className="text-xs text-muted-foreground">×</span>
-              <input className="input-base w-20" type="number" step="0.25" min="0" placeholder="Hours" value={line.quantity} onChange={(e) => onChange({ quantity: Number(e.target.value) })} />
+              <input className="input-base w-20" type="number" step="0.25" min="0" placeholder="Hours" value={line.quantity} onChange={(e) => onChange({ quantity: e.target.value })} />
             </div>
           ) : (
-            <input className="input-base mono w-28" type="number" step="0.01" placeholder="Amount" value={line.unit_price} onChange={(e) => onChange({ unit_price: Number(e.target.value) })} />
+            <input className="input-base mono w-28" type="number" step="0.01" placeholder="Amount" value={line.unit_price} onChange={(e) => onChange({ unit_price: e.target.value })} />
           )}
         </div>
       )}

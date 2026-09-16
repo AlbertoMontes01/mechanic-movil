@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import VehicleForm from "@/components/VehicleForm";
+import { vehicleIdValue } from "@/lib/format";
 import { CarFront } from "lucide-react";
 
 // Same pattern as ClientPicker, scoped to the vehicles belonging to the
@@ -9,7 +10,10 @@ import { CarFront } from "lucide-react";
 export default function VehiclePicker({ vehicles, clientId, value, onSelect, onVehicleCreated, className = "input-base h-[42px]" }) {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const selected = value ? vehicles.find((v) => v.id === value) : null;
-  const label = (v) => `${v.year ? v.year + " " : ""}${v.make} ${v.model}${v.plate ? ` · ${v.plate}` : ""}`;
+  const label = (v) => {
+    const id = vehicleIdValue(v);
+    return `${v.year ? v.year + " " : ""}${v.make} ${v.model}${id ? ` · ${id}` : ""}`;
+  };
 
   const handleValueChange = (v) => {
     if (!v) return;

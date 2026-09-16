@@ -4,6 +4,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/shared";
+import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
 import { PackagePlus } from "lucide-react";
 
 // Inventory-item picker with an explicit "not in your inventory yet" empty
@@ -77,11 +78,11 @@ export default function InventoryItemPicker({ items, categories, value, onSelect
 }
 
 function QuickAddPartDialog({ open, onOpenChange, categories, onCreated }) {
-  const [form, setForm] = useState({ name: "", part_number: "", cost: "", category: "" });
+  const [form, setForm] = useState({ name: "", part_number: "", cost: "", price: "", category: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) setForm({ name: "", part_number: "", cost: "", category: "" });
+    if (open) setForm({ name: "", part_number: "", cost: "", price: "", category: "" });
   }, [open]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -93,7 +94,7 @@ function QuickAddPartDialog({ open, onOpenChange, categories, onCreated }) {
     e.stopPropagation();
     setSaving(true);
     try {
-      const payload = { ...form, stock: 1, cost: Number(form.cost) || 0 };
+      const payload = { ...form, stock: 1, cost: Number(form.cost) || 0, price: Number(form.price) || 0 };
       const item = await api.entities.InventoryItem.create(payload);
       onCreated(item);
     } finally {
@@ -112,7 +113,12 @@ function QuickAddPartDialog({ open, onOpenChange, categories, onCreated }) {
             <input className="input-base" list="quick-add-part-cat-list" value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Type or pick" />
             <datalist id="quick-add-part-cat-list">{categories.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </Field>
-          <Field label="Cost ($)"><input className="input-base" type="number" step="0.01" value={form.cost} onChange={(e) => set("cost", e.target.value)} /></Field>
+          <CostPriceMarkupFields
+            cost={form.cost}
+            price={form.price}
+            onCostChange={(v) => set("cost", v)}
+            onPriceChange={(v) => set("price", v)}
+          />
           <p className="col-span-2 text-[11px] text-muted-foreground">Starting stock will be set to 1 — adjust it later from Inventory.</p>
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>

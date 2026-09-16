@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { useShopSettings } from "@/lib/ShopSettingsContext";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, vehicleIdLabel } from "@/lib/format";
 import { generateWorkOrderPDF } from "@/lib/pdf";
 import { PageHeader, Loader, EmptyState, Card, StatusBadge } from "@/components/shared";
 import { Edit, Download, FileText, Trash2, Share2 } from "lucide-react";
@@ -67,7 +67,7 @@ export default function WorkOrderDetail() {
           <div>
             <p className="field-label">Vehicle</p>
             <p className="font-semibold text-foreground">{vehicle ? `${vehicle.year ? vehicle.year + " " : ""}${vehicle.make} ${vehicle.model}` : "—"}</p>
-            <p className="text-sm text-muted-foreground mono">{vehicle?.plate ? `Plate ${vehicle.plate}` : ""} {vehicle?.vin ? `· VIN ${vehicle.vin}` : ""}</p>
+            <p className="text-sm text-muted-foreground mono">{vehicleIdLabel(vehicle)} {vehicle?.vin ? `· VIN ${vehicle.vin}` : ""}</p>
             <p className="text-xs text-muted-foreground">{vehicle?.odometer != null ? `${Number(vehicle.odometer).toLocaleString()} mi` : ""}</p>
           </div>
         </div>

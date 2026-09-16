@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, vehicleIdValue } from "@/lib/format";
 import { PageHeader, Loader, EmptyState, StatusBadge, Card } from "@/components/shared";
 import { ClipboardList, Plus, Search } from "lucide-react";
 
@@ -34,6 +34,7 @@ export default function WorkOrders() {
     return (
       clientMap[w.client_id]?.name?.toLowerCase().includes(ql) ||
       v?.plate?.toLowerCase().includes(ql) ||
+      v?.unit_number?.toLowerCase().includes(ql) ||
       v?.vin?.toLowerCase().includes(ql) ||
       (v?.make + " " + v?.model).toLowerCase().includes(ql)
     );
@@ -70,7 +71,7 @@ export default function WorkOrders() {
                 <Card className="p-3 flex items-center justify-between hover:border-primary/40 transition-colors">
                   <div className="min-w-0">
                     <p className="font-semibold text-foreground truncate">{clientMap[w.client_id]?.name || "—"}</p>
-                    <p className="text-sm text-muted-foreground truncate">{v ? `${v.year ? v.year + " " : ""}${v.make} ${v.model}` : "—"} {v?.plate && <span className="mono">· {v.plate}</span>}</p>
+                    <p className="text-sm text-muted-foreground truncate">{v ? `${v.year ? v.year + " " : ""}${v.make} ${v.model}` : "—"} {vehicleIdValue(v) && <span className="mono">· {vehicleIdValue(v)}</span>}</p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(w.date)}</span>

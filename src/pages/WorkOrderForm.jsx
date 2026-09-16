@@ -88,7 +88,12 @@ export default function WorkOrderForm() {
       const payload = {
         ...form,
         subjects: form.subjects
-          .map((s) => ({ ...s, parts_used: (s.parts_used || []).filter((p) => p.inventory_item_id) }))
+          .map((s) => ({
+            ...s,
+            parts_used: (s.parts_used || [])
+              .filter((p) => p.inventory_item_id)
+              .map((p) => ({ ...p, quantity: Number(p.quantity) || 1 })),
+          }))
           .filter((s) => s.description || s.note || s.parts_used.length),
       };
       let saved;
@@ -168,7 +173,7 @@ export default function WorkOrderForm() {
                             onSelect={(item) => setPart(idx, pIdx, "inventory_item_id", item.id)}
                             onItemCreated={(newItem) => setItems((prev) => [newItem, ...prev])}
                           />
-                          <input className="input-base" type="number" min="1" placeholder="Qty" value={p.quantity} onChange={(e) => setPart(idx, pIdx, "quantity", Number(e.target.value))} />
+                          <input className="input-base" type="number" min="1" placeholder="Qty" value={p.quantity} onChange={(e) => setPart(idx, pIdx, "quantity", e.target.value)} />
                           <button type="button" onClick={() => removePart(idx, pIdx)} className="grid h-[42px] w-10 place-items-center rounded-md border border-white/10 text-red-300 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
                         </div>
                       ))}
