@@ -66,7 +66,7 @@ export default function InventoryItemPicker({ items, categories, value, onSelect
               ))}
             </SelectContent>
           </Select>
-          {linked && Number(linked.stock) <= 0 && (
+          {linked && linked.track_stock && Number(linked.stock) <= 0 && (
             <p className="mt-1 text-[11px] text-red-300">This part has 0 in stock.</p>
           )}
         </>

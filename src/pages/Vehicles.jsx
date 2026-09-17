@@ -4,10 +4,25 @@ import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { PageHeader, EmptyState, Loader, Card } from "@/components/shared";
 import VehicleForm from "@/components/VehicleForm";
-import { Plus, Search, Car } from "lucide-react";
+import { exportToCSV } from "@/lib/csv";
+import { Plus, Search, Car, Download } from "lucide-react";
+
+const VEHICLE_COLUMNS = [
+  { key: "client_name", label: "Client" },
+  { key: "vehicle_type", label: "Type" },
+  { key: "year", label: "Year" },
+  { key: "make", label: "Make" },
+  { key: "model", label: "Model" },
+  { key: "unit_number", label: "Unit #" },
+  { key: "plate", label: "Plate" },
+  { key: "vin", label: "VIN" },
+  { key: "odometer", label: "Odometer" },
+  { key: "engine_hours", label: "Engine Hours" },
+];
 
 export default function Vehicles() {
   const [q, setQ] = useState("");
+  const [clientFilter, setClientFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const { data, loading, reload } = useAsync(() =>
     Promise.all([api.entities.Vehicle.list(), api.entities.Client.list()])
@@ -24,6 +39,7 @@ export default function Vehicles() {
 
   const ql = q.toLowerCase();
   const filtered = vehicles.filter((v) => {
+    if (clientFilter !== "all" && v.client_id !== clientFilter) return false;
     if (!q) return true;
     const client = clientMap[v.client_id];
     return (
@@ -35,6 +51,12 @@ export default function Vehicles() {
       client?.name?.toLowerCase().includes(ql)
     );
   });
+
+  const exportVehicles = () => {
+    const rows = filtered.map((v) => ({ ...v, client_name: clientMap[v.client_id]?.name || "" }));
+    const suffix = clientFilter === "all" ? "all-clients" : (clientMap[clientFilter]?.name || "client").toLowerCase().replace(/\s+/g, "-");
+    exportToCSV(`vehicles-${suffix}.csv`, VEHICLE_COLUMNS, rows);
+  };
 
   return (
     <div>
@@ -48,9 +70,23 @@ export default function Vehicles() {
         }
       />
 
-      <div className="relative mb-4 max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input className="input-base pl-9" placeholder="Search make, model, plate, VIN, client…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input className="input-base pl-9" placeholder="Search make, model, plate, VIN, client…" value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
+        <select className="input-base sm:w-56" value={clientFilter} onChange={(e) => setClientFilter(e.target.value)}>
+          <option value="all">All clients</option>
+          {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <button
+          type="button"
+          onClick={exportVehicles}
+          disabled={filtered.length === 0}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm hover:bg-white/5 disabled:opacity-40"
+        >
+          <Download className="h-4 w-4" /> Export CSV
+        </button>
       </div>
 
       {filtered.length === 0 ? (

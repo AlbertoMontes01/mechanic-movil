@@ -6,7 +6,18 @@ import { PageHeader, Loader, EmptyState, Card, Field } from "@/components/shared
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
-import { Plus, Edit, Trash2, Package, Tag, Search } from "lucide-react";
+import { exportToCSV } from "@/lib/csv";
+import { Plus, Edit, Trash2, Package, Tag, Search, Download } from "lucide-react";
+
+const INVENTORY_COLUMNS = [
+  { key: "part_number", label: "Part #" },
+  { key: "name", label: "Name" },
+  { key: "category", label: "Category" },
+  { key: "stock", label: "Stock" },
+  { key: "track_stock", label: "Tracked" },
+  { key: "cost", label: "Cost" },
+  { key: "price", label: "Price" },
+];
 
 export default function Inventory() {
   const [itemOpen, setItemOpen] = useState(false);
@@ -43,6 +54,15 @@ export default function Inventory() {
     }
   };
 
+  // Exports exactly what's on screen -- the category filter already reads
+  // "All categories" or one specific category, so there's no separate
+  // export-scope picker to keep in sync with it.
+  const exportInventory = () => {
+    const rows = items.map((i) => ({ ...i, track_stock: i.track_stock ? "Yes" : "No" }));
+    const suffix = catFilter === "all" ? "all-categories" : catFilter.toLowerCase().replace(/\s+/g, "-");
+    exportToCSV(`inventory-${suffix}.csv`, INVENTORY_COLUMNS, rows);
+  };
+
   return (
     <div>
       <PageHeader
@@ -65,6 +85,14 @@ export default function Inventory() {
           <option value="all">All categories</option>
           {categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
+        <button
+          type="button"
+          onClick={exportInventory}
+          disabled={items.length === 0}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm hover:bg-white/5 disabled:opacity-40"
+        >
+          <Download className="h-4 w-4" /> Export CSV
+        </button>
       </div>
 
       {loading ? <Loader /> : items.length === 0 ? (
@@ -93,9 +121,15 @@ export default function Inventory() {
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between">
-                <span className={`mono text-sm font-bold px-2 py-0.5 rounded ${Number(it.stock) <= 0 ? "bg-red-500/20 text-red-300" : Number(it.stock) <= 3 ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"}`}>
-                  {it.stock} in stock
-                </span>
+                {it.track_stock ? (
+                  <span className={`mono text-sm font-bold px-2 py-0.5 rounded ${Number(it.stock) <= 0 ? "bg-red-500/20 text-red-300" : Number(it.stock) <= 3 ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"}`}>
+                    {it.stock} in stock
+                  </span>
+                ) : (
+                  <span className="mono text-sm px-2 py-0.5 rounded bg-white/5 text-muted-foreground" title="Stock alerts are off for this part">
+                    Not tracked
+                  </span>
+                )}
                 <span className="text-sm text-muted-foreground">Cost {money(it.cost)} · Price {money(it.price)}</span>
               </div>
             </Card>
@@ -109,12 +143,20 @@ export default function Inventory() {
   );
 }
 
+const EMPTY_ITEM_FORM = { part_number: "", name: "", stock: "", cost: "", price: "", track_stock: true, category: "" };
+
 function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
-  const [form, setForm] = useState({ part_number: "", name: "", stock: "", cost: "", price: "", category: "" });
+  const [form, setForm] = useState(EMPTY_ITEM_FORM);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) setForm(item ? { ...item, stock: item.stock ?? "", cost: item.cost ?? "", price: item.price ?? "" } : { part_number: "", name: "", stock: "", cost: "", price: "", category: "" });
+    if (open) {
+      setForm(
+        item
+          ? { ...item, stock: item.stock ?? "", cost: item.cost ?? "", price: item.price ?? "", track_stock: item.track_stock ?? true }
+          : EMPTY_ITEM_FORM
+      );
+    }
   }, [open, item]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -145,6 +187,10 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
             <datalist id="cat-list">{categories.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </Field>
           <Field label="Stock"><input className="input-base" type="number" value={form.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
+          <label className="flex items-center gap-2 self-end pb-2.5 text-sm text-foreground">
+            <input type="checkbox" className="h-4 w-4 rounded border-white/20" checked={form.track_stock} onChange={(e) => set("track_stock", e.target.checked)} />
+            Track stock &amp; alert when low
+          </label>
           <CostPriceMarkupFields
             cost={form.cost}
             price={form.price}

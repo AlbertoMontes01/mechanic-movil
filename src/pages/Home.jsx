@@ -31,7 +31,7 @@ export default function Home() {
   const outstanding = invoices.filter((i) => i.status === "pending").reduce((s, i) => s + Number(i.total || 0), 0);
   const active = workOrders.filter((w) => w.status !== "Invoiced");
   const board = active.filter((w) => w.status === tab);
-  const lowStock = items.filter((i) => Number(i.stock || 0) <= 3);
+  const lowStock = items.filter((i) => i.track_stock && Number(i.stock || 0) <= 3);
 
   const vLabel = (wid) => {
     const v = vehicleMap[wid];

@@ -3,7 +3,18 @@ import { api } from "@/api/client";
 import { useAsync } from "@/lib/useAsync";
 import { PageHeader, EmptyState, Loader } from "@/components/shared";
 import ClientForm from "@/components/ClientForm";
-import { Plus, Search, Users } from "lucide-react";
+import { exportToCSV } from "@/lib/csv";
+import { Plus, Search, Users, Download } from "lucide-react";
+
+const CLIENT_COLUMNS = [
+  { key: "name", label: "Name" },
+  { key: "phone", label: "Phone" },
+  { key: "email", label: "Email" },
+  { key: "address", label: "Address" },
+  { key: "city", label: "City" },
+  { key: "state", label: "State" },
+  { key: "zip", label: "ZIP" },
+];
 
 export default function Clients() {
   const [open, setOpen] = useState(false);
@@ -14,15 +25,22 @@ export default function Clients() {
     !q || c.name?.toLowerCase().includes(q.toLowerCase()) || c.phone?.includes(q) || c.email?.toLowerCase().includes(q.toLowerCase())
   );
 
+  const exportClients = () => exportToCSV("clients.csv", CLIENT_COLUMNS, data || []);
+
   return (
     <div>
       <PageHeader
         title="Clients"
         subtitle={`${(data || []).length} clients`}
         actions={
-          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
-            <Plus className="h-4 w-4" /> New
-          </button>
+          <div className="flex gap-2">
+            <button onClick={exportClients} disabled={!(data || []).length} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm hover:bg-white/5 disabled:opacity-40">
+              <Download className="h-4 w-4" /> Export CSV
+            </button>
+            <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+              <Plus className="h-4 w-4" /> New
+            </button>
+          </div>
         }
       />
 
