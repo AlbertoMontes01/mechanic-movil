@@ -6,8 +6,9 @@ import { PageHeader, Loader, EmptyState, Card, Field } from "@/components/shared
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
+import ImportCSVDialog from "@/components/ImportCSVDialog";
 import { exportToCSV } from "@/lib/csv";
-import { Plus, Edit, Trash2, Package, Tag, Search, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Tag, Search, Download, Upload } from "lucide-react";
 
 const INVENTORY_COLUMNS = [
   { key: "part_number", label: "Part #" },
@@ -19,6 +20,11 @@ const INVENTORY_COLUMNS = [
   { key: "price", label: "Price" },
 ];
 
+const INVENTORY_TEMPLATE_ROWS = [
+  { part_number: "BR-1234", name: "Brake Pad Set", category: "Brakes", stock: 5, track_stock: "Yes", cost: 20, price: 35 },
+  { part_number: "", name: "Shop Rag (bulk)", category: "Supplies", stock: 0, track_stock: "No", cost: 0.5, price: 1 },
+];
+
 export default function Inventory() {
   const [itemOpen, setItemOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -26,6 +32,7 @@ export default function Inventory() {
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [confirmDelId, setConfirmDelId] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data, loading, reload } = useAsync(() =>
     Promise.all([
@@ -63,6 +70,39 @@ export default function Inventory() {
     exportToCSV(`inventory-${suffix}.csv`, INVENTORY_COLUMNS, rows);
   };
 
+  // Always creates new parts -- it doesn't try to match a row against an
+  // existing part by name/part # and update it, since that guessing game
+  // is more likely to silently overwrite the wrong part than help. A
+  // dedicated "update existing" mode can be added later if that's needed.
+  const importInventory = async (rows) => {
+    let created = 0;
+    const errors = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const rowNum = i + 2;
+      if (!r.name) {
+        errors.push({ row: rowNum, message: "Missing required ‘Name’ -- row skipped." });
+        continue;
+      }
+      try {
+        await api.entities.InventoryItem.create({
+          part_number: r.part_number || undefined,
+          name: r.name,
+          category: r.category || undefined,
+          stock: Number(r.stock) || 0,
+          track_stock: r.track_stock ? !/^no$/i.test(r.track_stock) : true,
+          cost: Number(r.cost) || 0,
+          price: Number(r.price) || 0,
+        });
+        created++;
+      } catch (err) {
+        errors.push({ row: rowNum, message: err.message || "Could not create this part." });
+      }
+    }
+    reload();
+    return { created, errors };
+  };
+
   return (
     <div>
       <PageHeader
@@ -92,6 +132,9 @@ export default function Inventory() {
           className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm hover:bg-white/5 disabled:opacity-40"
         >
           <Download className="h-4 w-4" /> Export CSV
+        </button>
+        <button type="button" onClick={() => setImportOpen(true)} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-2 text-sm hover:bg-white/5">
+          <Upload className="h-4 w-4" /> Import CSV
         </button>
       </div>
 
@@ -138,6 +181,15 @@ export default function Inventory() {
       )}
 
       <ItemForm open={itemOpen} onOpenChange={setItemOpen} onSaved={reload} item={editing} categories={categories} />
+      <ImportCSVDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="Import Parts"
+        templateFilename="inventory-template.csv"
+        columns={INVENTORY_COLUMNS}
+        exampleRows={INVENTORY_TEMPLATE_ROWS}
+        onImportRows={importInventory}
+      />
       <CategoryManager open={catOpen} onOpenChange={setCatOpen} categories={categories} onSaved={reload} />
     </div>
   );
