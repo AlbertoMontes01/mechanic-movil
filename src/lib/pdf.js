@@ -8,6 +8,8 @@ import { jsPDF } from "jspdf";
 // encoding or the embed silently fails. Loading through a <canvas> sidesteps
 // both problems -- whatever format the browser can decode (PNG/JPEG/GIF/
 // WEBP, all of what shop-settings.routes.js accepts) comes out the same way.
+// Also returns the natural width/height so the logo can be fit into its box
+// keeping its real aspect ratio, instead of being squished into a square.
 function loadImageAsPngDataUrl(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -18,7 +20,7 @@ function loadImageAsPngDataUrl(url) {
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
         canvas.getContext("2d").drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
+        resolve({ dataUrl: canvas.toDataURL("image/png"), width: img.naturalWidth, height: img.naturalHeight });
       } catch (err) {
         reject(err);
       }
@@ -28,27 +30,42 @@ function loadImageAsPngDataUrl(url) {
   });
 }
 
+// Shop name/contact on the left, logo (if any) on the right -- matches a
+// standard invoice header layout (see the reference screenshot: title top
+// left, business info below it, logo top right).
 async function drawHeader(doc, settings, margin, pageW) {
-  let y = margin;
+  const y = margin;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(15, 23, 42);
+  doc.text(settings?.shop_name || "My Shop", margin, y + 6);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  let ly = y + 13;
+  const contactLines = [settings?.phone, settings?.address].filter(Boolean);
+  contactLines.forEach((line) => {
+    doc.text(line, margin, ly);
+    ly += 5;
+  });
+
+  let headerH = ly - y;
   if (settings?.logo_url) {
     try {
-      const dataUrl = await loadImageAsPngDataUrl(settings.logo_url);
-      doc.addImage(dataUrl, "PNG", margin, y, 30, 30);
+      const { dataUrl, width, height } = await loadImageAsPngDataUrl(settings.logo_url);
+      const maxW = 34;
+      const maxH = 20;
+      const scale = Math.min(maxW / width, maxH / height, 1);
+      const w = width * scale;
+      const h = height * scale;
+      doc.addImage(dataUrl, "PNG", pageW - margin - w, y, w, h);
+      headerH = Math.max(headerH, h);
     } catch (e) {
       // Logo failed to load/decode/embed -- never let that block the rest
       // of the PDF, just render without it.
     }
   }
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.setTextColor(15, 23, 42);
-  doc.text(settings?.shop_name || "My Shop", margin + 36, y + 12);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(100, 116, 139);
-  const contact = [settings?.phone, settings?.address].filter(Boolean).join("  •  ");
-  if (contact) doc.text(contact, margin + 36, y + 20);
-  return y + 34;
+  return y + headerH + 8;
 }
 
 function drawClientVehicle(doc, x, y, pageW, margin, client, vehicle) {
@@ -133,6 +150,35 @@ function tableRows(doc, x, y, cols, rows, pageH, margin, headerLabels) {
     cy += rowH;
   });
   return cy;
+}
+
+// A paragraph of wrapped text, with an optional bold heading above it.
+// Used for the shop-wide invoice terms and the per-invoice customer note --
+// both plain free text, so this just needs to wrap and paginate cleanly,
+// not render anything structured.
+function drawTextBlock(doc, margin, y, pageW, pageH, heading, text) {
+  if (!text) return y;
+  if (y > pageH - margin - 20) {
+    doc.addPage();
+    y = margin;
+  }
+  if (heading) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(heading, margin, y);
+    y += 5;
+  }
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  const lines = doc.splitTextToSize(text, pageW - margin * 2);
+  if (y + lines.length * 4 > pageH - margin - 10) {
+    doc.addPage();
+    y = margin;
+  }
+  doc.text(lines, margin, y);
+  return y + lines.length * 4 + 7;
 }
 
 export async function generateWorkOrderPDF(wo, client, vehicle, settings) {
@@ -252,6 +298,10 @@ export async function generateInvoicePDF(inv, client, vehicle, settings) {
     doc.text(t[1], boxX + boxW - 3, y + (isTotal ? 6 : 5), { align: "right" });
     y += isTotal ? 9 : 6;
   });
+
+  y += 8;
+  y = drawTextBlock(doc, margin, y, pageW, pageH, null, settings?.invoice_terms);
+  y = drawTextBlock(doc, margin, y, pageW, pageH, "Note to Customer", inv.customer_note);
 
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);

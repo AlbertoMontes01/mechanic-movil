@@ -44,11 +44,11 @@ export default function WorkOrderForm() {
     if (wo) {
       setForm({
         ...wo,
-        technician_name: wo.technician_name || me?.full_name || me?.email || "",
+        technician_name: wo.technician_name || me?.name || me?.email || "",
       });
     } else {
       setForm({
-        technician_name: me?.full_name || me?.email || "",
+        technician_name: me?.name || me?.email || "",
         client_id: "",
         vehicle_id: "",
         status: "Draft",
@@ -137,17 +137,17 @@ export default function WorkOrderForm() {
           </Field>
         </Card>
 
-        {/* Subjects */}
+        {/* Labor */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-xl font-bold uppercase tracking-wide">Subjects</h2>
-            <button type="button" onClick={addSubject} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-1.5 text-sm hover:bg-white/5"><Plus className="h-4 w-4" /> Add Subject</button>
+            <h2 className="font-display text-xl font-bold uppercase tracking-wide">Labor</h2>
+            <button type="button" onClick={addSubject} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-1.5 text-sm hover:bg-white/5"><Plus className="h-4 w-4" /> Add Labor</button>
           </div>
           <div className="space-y-4">
             {form.subjects.map((s, idx) => (
               <Card key={idx} className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subject {idx + 1}</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Labor {idx + 1}</span>
                   {form.subjects.length > 1 && (
                     <button type="button" onClick={() => removeSubject(idx)} className="text-red-300 hover:bg-red-500/10 grid h-7 w-7 place-items-center rounded"><Trash2 className="h-3.5 w-3.5" /></button>
                   )}
@@ -161,7 +161,7 @@ export default function WorkOrderForm() {
                     <button type="button" onClick={() => addPart(idx)} className="text-xs text-primary hover:underline inline-flex items-center gap-1"><Plus className="h-3 w-3" /> Add part</button>
                   </div>
                   {s.parts_used.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No parts logged for this subject.</p>
+                    <p className="text-xs text-muted-foreground">No parts logged for this labor item.</p>
                   ) : (
                     <div className="space-y-2">
                       {s.parts_used.map((p, pIdx) => (
@@ -183,6 +183,13 @@ export default function WorkOrderForm() {
               </Card>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={addSubject}
+            className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-dashed border-white/20 px-3 py-2.5 text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add Labor
+          </button>
         </div>
 
         <Card className="p-4">

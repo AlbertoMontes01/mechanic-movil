@@ -53,6 +53,7 @@ export default function InvoiceForm() {
       // (those are UI-only) — infer them so the editor renders sensibly.
       setForm({
         ...inv,
+        customer_note: inv.customer_note || "",
         lines: (inv.lines || []).map((l) => ({
           ...emptyServiceLine(),
           ...l,
@@ -69,6 +70,7 @@ export default function InvoiceForm() {
         work_order_id: "",
         lines: [emptyServiceLine()],
         status: "pending",
+        customer_note: "",
       };
       if (wo) {
         baseForm.client_id = wo.client_id;
@@ -205,6 +207,17 @@ export default function InvoiceForm() {
           </div>
         </Card>
 
+        <Card className="p-4">
+          <Field label="Note to Customer" hint="Specific to this invoice -- what was diagnosed, done, or found. Printed below the general Invoice Terms from Settings.">
+            <textarea
+              className="input-base min-h-[80px]"
+              placeholder="e.g. Connected vehicle using diagnostic tool and found faults..."
+              value={form.customer_note}
+              onChange={(e) => set("customer_note", e.target.value)}
+            />
+          </Field>
+        </Card>
+
         <div className="flex justify-end gap-2 pb-4">
           <Button type="button" variant="ghost" onClick={() => navigate(-1)}>Cancel</Button>
           <Button type="submit" disabled={saving} className="gap-1.5"><Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Invoice"}</Button>
@@ -243,6 +256,9 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
     if (item_type === "product") {
       onChange({ item_type, pricing_mode: "quantity", quantity: 1 });
     } else {
+      // Both Service and Fee are free-text + an amount -- Fee just skips
+      // the Hourly option, since a travel fee or disposal fee is always a
+      // flat one-time charge, never billed by the hour.
       onChange({ item_type, pricing_mode: "flat", inventory_item_id: "", quantity: 1 });
     }
   };
@@ -253,7 +269,7 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
         <Pills
           value={line.item_type}
           onChange={setType}
-          options={[{ value: "service", label: "Service" }, { value: "product", label: "Product" }]}
+          options={[{ value: "service", label: "Service" }, { value: "product", label: "Product" }, { value: "fee", label: "Fee" }]}
         />
         {onRemove && (
           <button type="button" onClick={onRemove} className="grid h-8 w-8 place-items-center rounded-md border border-white/10 text-red-300 hover:bg-red-500/10">
@@ -274,7 +290,12 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
           <input className="input-base text-center" type="number" min="1" placeholder="Qty" value={line.quantity} onChange={(e) => onChange({ quantity: e.target.value })} />
         </div>
       ) : (
-        <input className="input-base mb-2" placeholder="Service description (e.g. Oil change labor)" value={line.description} onChange={(e) => onChange({ description: e.target.value })} />
+        <input
+          className="input-base mb-2"
+          placeholder={line.item_type === "fee" ? "Fee description (e.g. Travel / disposal fee)" : "Service description (e.g. Oil change labor)"}
+          value={line.description}
+          onChange={(e) => onChange({ description: e.target.value })}
+        />
       )}
 
       {line.item_type === "service" && (
@@ -293,6 +314,12 @@ function InvoiceLineEditor({ line, items, categories, onChange, onRemove, onItem
           ) : (
             <input className="input-base mono w-28" type="number" step="0.01" placeholder="Amount" value={line.unit_price} onChange={(e) => onChange({ unit_price: e.target.value })} />
           )}
+        </div>
+      )}
+
+      {line.item_type === "fee" && (
+        <div className="mt-2">
+          <input className="input-base mono w-28" type="number" step="0.01" placeholder="Amount" value={line.unit_price} onChange={(e) => onChange({ unit_price: e.target.value })} />
         </div>
       )}
 

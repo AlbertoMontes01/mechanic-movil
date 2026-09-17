@@ -70,7 +70,7 @@ export default function Home() {
                   <p className="font-semibold text-foreground truncate">{clientMap[w.client_id]?.name || "—"}</p>
                   <p className="text-sm text-muted-foreground truncate">{vLabel(w.vehicle_id)} {vPlate(w.vehicle_id) && <span className="mono">· {vPlate(w.vehicle_id)}</span>}</p>
                   <div className="mt-2 text-xs text-muted-foreground">
-                    {w.subjects?.length || 0} subject{(w.subjects?.length || 0) === 1 ? "" : "s"}
+                    {w.subjects?.length || 0} labor item{(w.subjects?.length || 0) === 1 ? "" : "s"}
                   </div>
                 </Card>
               </Link>

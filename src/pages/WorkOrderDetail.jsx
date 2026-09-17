@@ -73,14 +73,14 @@ export default function WorkOrderDetail() {
         </div>
       </Card>
 
-      <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-3">Subjects</h2>
+      <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-3">Labor</h2>
       <div className="space-y-3 mb-5">
         {(wo.subjects || []).length === 0 ? (
-          <p className="text-sm text-muted-foreground">No subjects.</p>
+          <p className="text-sm text-muted-foreground">No labor logged.</p>
         ) : (
           wo.subjects.map((s, i) => (
             <Card key={i} className="p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-1">Subject {i + 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-1">Labor {i + 1}</p>
               <p className="text-sm text-foreground whitespace-pre-wrap">{s.description || "—"}</p>
               {s.note && <p className="text-sm text-muted-foreground mt-2"><span className="field-label">Note: </span>{s.note}</p>}
               {s.parts_used?.length > 0 && (

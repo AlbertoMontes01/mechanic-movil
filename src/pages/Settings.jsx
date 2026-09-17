@@ -5,23 +5,42 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { Upload, Save, LogOut, Wrench } from "lucide-react";
+import { Upload, Save, LogOut, Wrench, User } from "lucide-react";
 
 export default function Settings() {
   const { settings, save, loading, refresh } = useShopSettings();
-  const { logout } = useAuth();
+  const { user, logout, checkUserAuth } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [name, setName] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
-    if (settings) setForm({ shop_name: settings.shop_name || "", logo_url: settings.logo_url || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0 });
-    else if (!loading) setForm({ shop_name: "", logo_url: "", phone: "", address: "", tax_rate: 0 });
+    if (settings) setForm({ shop_name: settings.shop_name || "", logo_url: settings.logo_url || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0, invoice_terms: settings.invoice_terms || "" });
+    else if (!loading) setForm({ shop_name: "", logo_url: "", phone: "", address: "", tax_rate: 0, invoice_terms: "" });
   }, [settings, loading]);
+
+  useEffect(() => {
+    setName(user?.name || "");
+  }, [user]);
 
   if (loading || !form) return <Loader />;
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const submitName = async (e) => {
+    e.preventDefault();
+    setSavingName(true);
+    try {
+      await api.auth.updateProfile({ name });
+      await checkUserAuth();
+    } catch (err) {
+      alert(err.message || "Could not save your name.");
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   const onLogo = async (e) => {
     const file = e.target.files?.[0];
@@ -83,10 +102,33 @@ export default function Settings() {
           <div className="col-span-2"><Field label="Address"><input className="input-base" value={form.address} onChange={(e) => set("address", e.target.value)} /></Field></div>
         </Card>
 
+        <Card className="p-4">
+          <Field label="Invoice Terms" hint="Printed on every invoice PDF -- warranty policy, payment terms, anything that applies to all of them. Use the Note field on a specific invoice for anything just about that job.">
+            <textarea
+              className="input-base min-h-[90px]"
+              placeholder="e.g. Parts carry manufacturer warranty. Labor warranty is 90 days and covers workmanship only..."
+              value={form.invoice_terms}
+              onChange={(e) => set("invoice_terms", e.target.value)}
+            />
+          </Field>
+        </Card>
+
         <div className="flex justify-end">
           <Button type="submit" disabled={saving} className="gap-1.5"><Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Settings"}</Button>
         </div>
       </form>
+
+      <Card className="max-w-lg p-4 mt-6">
+        <p className="field-label mb-2">Your Name</p>
+        <p className="text-xs text-muted-foreground/70 mb-2">Used as the default Technician on new work orders.</p>
+        <form onSubmit={submitName} className="flex gap-2">
+          <div className="relative flex-1">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input className="input-base pl-9" placeholder="Jane Smith" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <Button type="submit" disabled={savingName || !name.trim()} className="gap-1.5"><Save className="h-4 w-4" /> {savingName ? "Saving…" : "Save"}</Button>
+        </form>
+      </Card>
 
       <Card className="max-w-lg p-4 mt-6">
         <p className="field-label mb-2">Account</p>

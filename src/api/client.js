@@ -136,6 +136,7 @@ export const api = {
   },
   auth: {
     me: () => request('/auth/me'),
+    updateProfile: ({ name }) => request('/auth/me', { method: 'PATCH', body: { name } }),
     loginViaEmailPassword: async (email, password) => {
       const { user, token } = await request('/auth/login', { method: 'POST', body: { email, password } });
       setToken(token);

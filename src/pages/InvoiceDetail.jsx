@@ -102,6 +102,13 @@ export default function InvoiceDetail() {
           <span className="font-display text-2xl font-bold text-primary">{money(inv.total)}</span>
         </div>
       </Card>
+
+      {inv.customer_note && (
+        <Card className="p-4 mt-5">
+          <p className="field-label mb-1">Note to Customer</p>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{inv.customer_note}</p>
+        </Card>
+      )}
     </div>
   );
 }
