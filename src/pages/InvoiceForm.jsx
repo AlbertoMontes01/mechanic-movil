@@ -76,6 +76,11 @@ export default function InvoiceForm() {
         baseForm.client_id = wo.client_id;
         baseForm.vehicle_id = wo.vehicle_id;
         baseForm.work_order_id = wo.id;
+        // The work order's own notes are usually exactly what belongs in
+        // "Note to Customer" (what was diagnosed/found/done) -- carry them
+        // over as a starting point rather than making the mechanic retype
+        // something they already wrote.
+        baseForm.customer_note = wo.general_notes || "";
         const lines = [];
         (wo.subjects || []).forEach((s) => {
           if (s.description) lines.push({ ...emptyServiceLine(), description: s.description });
