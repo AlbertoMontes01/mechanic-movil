@@ -40,11 +40,13 @@ async function refreshAccessToken() {
   return refreshPromise;
 }
 
-async function request(path, { method = 'GET', body, _retried = false } = {}) {
+async function request(path, { method = 'GET', body, isForm = false, _retried = false } = {}) {
   const headers = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  // A FormData body sets its own multipart Content-Type (with boundary) --
+  // setting it manually here would break the upload.
+  if (!isForm && body !== undefined) headers['Content-Type'] = 'application/json';
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
@@ -53,7 +55,7 @@ async function request(path, { method = 'GET', body, _retried = false } = {}) {
     // sent/received — harmless for every other path, the browser just
     // won't have a matching cookie to attach.
     credentials: 'include',
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   });
 
   // /auth/me legitimately benefits from an auto-refresh retry (that's how a
@@ -64,7 +66,7 @@ async function request(path, { method = 'GET', body, _retried = false } = {}) {
   if (res.status === 401 && !_retried && !NO_RETRY_PATHS.some((p) => path.startsWith(p))) {
     try {
       await refreshAccessToken();
-      return request(path, { method, body, _retried: true });
+      return request(path, { method, body, isForm, _retried: true });
     } catch {
       clearToken();
       // fall through and let the original 401 response below report the error
@@ -120,6 +122,16 @@ export const api = {
       },
       create: (data) => request('/shop-settings', { method: 'PUT', body: data }),
       update: (_id, data) => request('/shop-settings', { method: 'PUT', body: data }),
+    },
+  },
+  integrations: {
+    Core: {
+      UploadPublicFile: async ({ file }) => {
+        const form = new FormData();
+        form.append('file', file);
+        const data = await request('/shop-settings/logo', { method: 'POST', body: form, isForm: true });
+        return { file_url: data.file_url };
+      },
     },
   },
   auth: {

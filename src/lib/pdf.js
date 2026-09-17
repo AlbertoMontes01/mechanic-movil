@@ -3,13 +3,40 @@ import { jsPDF } from "jspdf";
 // Shared PDF builder for Work Orders, Invoices and Vehicle History.
 // Clean white professional layout: shop header, client/vehicle block, data table.
 
-function drawHeader(doc, settings, margin, pageW) {
+// jsPDF's addImage needs the actual pixel data (a data URI, not a URL it
+// fetches itself), and the format string it's given must match the actual
+// encoding or the embed silently fails. Loading through a <canvas> sidesteps
+// both problems -- whatever format the browser can decode (PNG/JPEG/GIF/
+// WEBP, all of what shop-settings.routes.js accepts) comes out the same way.
+function loadImageAsPngDataUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext("2d").drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = () => reject(new Error("Could not load logo image"));
+    img.src = url;
+  });
+}
+
+async function drawHeader(doc, settings, margin, pageW) {
   let y = margin;
   if (settings?.logo_url) {
     try {
-      doc.addImage(settings.logo_url, "PNG", margin, y, 30, 30);
+      const dataUrl = await loadImageAsPngDataUrl(settings.logo_url);
+      doc.addImage(dataUrl, "PNG", margin, y, 30, 30);
     } catch (e) {
-      // logo may be svg or unsupported — skip silently
+      // Logo failed to load/decode/embed -- never let that block the rest
+      // of the PDF, just render without it.
     }
   }
   doc.setFont("helvetica", "bold");
@@ -108,13 +135,13 @@ function tableRows(doc, x, y, cols, rows, pageH, margin, headerLabels) {
   return cy;
 }
 
-export function generateWorkOrderPDF(wo, client, vehicle, settings) {
+export async function generateWorkOrderPDF(wo, client, vehicle, settings) {
   const doc = new jsPDF({ unit: "mm", format: "letter" });
   const margin = 14;
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  let y = drawHeader(doc, settings, margin, pageW);
+  let y = await drawHeader(doc, settings, margin, pageW);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
@@ -163,13 +190,13 @@ export function generateWorkOrderPDF(wo, client, vehicle, settings) {
   doc.save(`WO-${(wo.id || "draft").slice(-6).toUpperCase()}.pdf`);
 }
 
-export function generateInvoicePDF(inv, client, vehicle, settings) {
+export async function generateInvoicePDF(inv, client, vehicle, settings) {
   const doc = new jsPDF({ unit: "mm", format: "letter" });
   const margin = 14;
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  let y = drawHeader(doc, settings, margin, pageW);
+  let y = await drawHeader(doc, settings, margin, pageW);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
@@ -233,13 +260,13 @@ export function generateInvoicePDF(inv, client, vehicle, settings) {
   doc.save(`${inv.invoice_number || "INVOICE"}.pdf`);
 }
 
-export function generateVehicleHistoryPDF(vehicle, client, history, settings) {
+export async function generateVehicleHistoryPDF(vehicle, client, history, settings) {
   const doc = new jsPDF({ unit: "mm", format: "letter" });
   const margin = 14;
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  let y = drawHeader(doc, settings, margin, pageW);
+  let y = await drawHeader(doc, settings, margin, pageW);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
