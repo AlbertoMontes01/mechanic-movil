@@ -16,13 +16,26 @@ import { Download, Upload } from "lucide-react";
 export default function ImportCSVDialog({ open, onOpenChange, title, templateFilename, columns, exampleRows, onImportRows }) {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef(null);
 
   const downloadTemplate = () => exportToCSV(templateFilename, columns, exampleRows);
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
+  const handleInputChange = (e) => processFile(e.target.files?.[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (importing) return;
+    processFile(e.dataTransfer.files?.[0]);
+  };
+
+  const processFile = async (file) => {
     if (!file) return;
+    if (!/\.csv$/i.test(file.name) && file.type && file.type !== "text/csv") {
+      setResult({ created: 0, errors: [{ row: 0, message: `"${file.name}" doesn't look like a .csv file. Export your spreadsheet as CSV first (not .xlsx).` }] });
+      return;
+    }
     setImporting(true);
     setResult(null);
     try {
@@ -67,9 +80,17 @@ export default function ImportCSVDialog({ open, onOpenChange, title, templateFil
             <Download className="h-4 w-4" /> Download template
           </button>
 
-          <label className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-white/20 px-3 py-5 text-sm text-foreground cursor-pointer hover:bg-white/5 transition-colors">
-            <Upload className="h-4 w-4" /> {importing ? "Importing…" : "Choose CSV file…"}
-            <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} disabled={importing} />
+          <label
+            onDragOver={(e) => { e.preventDefault(); if (!importing) setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            className={`flex flex-col items-center justify-center gap-1 rounded-md border border-dashed px-3 py-6 text-sm text-foreground cursor-pointer transition-colors ${
+              dragOver ? "border-primary bg-primary/10" : "border-white/20 hover:bg-white/5"
+            }`}
+          >
+            <Upload className="h-4 w-4" />
+            <span>{importing ? "Importing…" : dragOver ? "Drop it here" : "Drag & drop a CSV file, or click to choose"}</span>
+            <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleInputChange} disabled={importing} />
           </label>
 
           {result && (
