@@ -4,7 +4,14 @@
 // export order; `row[key]` is read directly (dot paths aren't supported).
 export function exportToCSV(filename, columns, rows) {
   const escape = (val) => {
-    const s = val == null ? "" : String(val);
+    let s = val == null ? "" : String(val);
+    // CSV/formula-injection guard: a cell starting with =, +, -, or @ (a
+    // valid formula prefix in Excel/Sheets/Numbers) gets a leading
+    // apostrophe, the standard way to force it to be read as literal text
+    // instead of evaluated when the file is reopened -- otherwise a phone
+    // number like "+1 555-0100" or a client-entered name/address is opened
+    // as a live formula, from a plain data export, by whoever it lands on.
+    if (/^[=+\-@]/.test(s)) s = `'${s}`;
     return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
 
@@ -80,6 +87,16 @@ export function parseCSV(text) {
 // by `columns[].key`, matching header cells to `columns[].label`
 // case-insensitively -- column order in the file doesn't have to match
 // `columns`, so a reordered or partially-filled-in template still works.
+// Undoes exportToCSV's own formula-injection guard (a leading apostrophe
+// before =, +, -, or @) so round-tripping our own export back through
+// import doesn't bake a stray "'" into the actual stored value -- a
+// genuine apostrophe-led value that isn't followed by one of those four
+// characters is left untouched, since that guard would never have fired
+// on it in the first place.
+function unescapeLeadingFormulaChar(s) {
+  return /^'[=+\-@]/.test(s) ? s.slice(1) : s;
+}
+
 export function rowsToObjects(rows, columns) {
   if (rows.length < 2) return [];
   const header = rows[0].map((h) => h.trim().toLowerCase());
@@ -87,7 +104,7 @@ export function rowsToObjects(rows, columns) {
     const obj = {};
     for (const col of columns) {
       const idx = header.indexOf(col.label.toLowerCase());
-      obj[col.key] = idx >= 0 ? (r[idx] ?? "").trim() : "";
+      obj[col.key] = idx >= 0 ? unescapeLeadingFormulaChar((r[idx] ?? "").trim()) : "";
     }
     return obj;
   });
