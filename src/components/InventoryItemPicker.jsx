@@ -38,13 +38,13 @@ export default function InventoryItemPicker({ items, categories, value, onSelect
     <div>
       {items.length === 0 ? (
         <div className="flex items-center justify-between gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-200">
-          <span>No tienes esta parte en tu inventario — agrégala primero</span>
+          <span>This part isn't in your inventory yet — add it first</span>
           <button
             type="button"
             onClick={() => setQuickAddOpen(true)}
             className="shrink-0 inline-flex items-center gap-1 rounded-md bg-amber-500/20 px-2 py-1 font-semibold text-amber-100 hover:bg-amber-500/30"
           >
-            <PackagePlus className="h-3.5 w-3.5" /> Agregar
+            <PackagePlus className="h-3.5 w-3.5" /> Add
           </button>
         </div>
       ) : (
@@ -57,7 +57,7 @@ export default function InventoryItemPicker({ items, categories, value, onSelect
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__add_new__" className="text-primary font-semibold">
-                + Agregar nueva parte
+                + Add new part
               </SelectItem>
               {items.map((it) => (
                 <SelectItem key={it.id} value={it.id}>

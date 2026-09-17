@@ -19,15 +19,15 @@ export default function CostPriceMarkupFields({ cost, price, onCostChange, onPri
 
   return (
     <>
-      <Field label="Cost ($)" hint="Lo que te costó a ti esta parte">
+      <Field label="Cost ($)" hint="What this part cost you">
         <input className="input-base" type="number" step="0.01" value={cost} onChange={(e) => onCostChange(e.target.value)} />
       </Field>
       <Field
         label="Markup (%)"
         hint={
           suggestion
-            ? `Rango sugerido ${tierRange} — ej: $${Number(cost).toFixed(2)} + ${effectiveMarkup}% = $${suggestion.toFixed(2)}`
-            : "Margen sugerido según el costo"
+            ? `Suggested range ${tierRange} — e.g. $${Number(cost).toFixed(2)} + ${effectiveMarkup}% = $${suggestion.toFixed(2)}`
+            : "Suggested margin based on cost"
         }
       >
         <input
@@ -39,7 +39,7 @@ export default function CostPriceMarkupFields({ cost, price, onCostChange, onPri
           onChange={(e) => setMarkup(e.target.value)}
         />
       </Field>
-      <Field label="Price ($)" hint="Lo que le cobras al cliente — esto es lo que se usa en las facturas">
+      <Field label="Price ($)" hint="What you charge the customer — this is what's used on invoices">
         <input
           className="input-base"
           type="number"

@@ -26,13 +26,13 @@ export default function ClientPicker({ clients, value, onSelect, onClientCreated
     <div>
       {clients.length === 0 ? (
         <div className="flex items-center justify-between gap-2 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-200">
-          <span>No tienes clientes todavía — agrega uno primero</span>
+          <span>You don't have any clients yet — add one first</span>
           <button
             type="button"
             onClick={() => setQuickAddOpen(true)}
             className="shrink-0 inline-flex items-center gap-1 rounded-md bg-amber-500/20 px-2 py-1 font-semibold text-amber-100 hover:bg-amber-500/30"
           >
-            <UserPlus className="h-3.5 w-3.5" /> Agregar
+            <UserPlus className="h-3.5 w-3.5" /> Add
           </button>
         </div>
       ) : (

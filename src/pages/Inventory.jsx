@@ -187,16 +187,26 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
             <datalist id="cat-list">{categories.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </Field>
           <Field label="Stock"><input className="input-base" type="number" value={form.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
-          <label className="flex items-center gap-2 self-end pb-2.5 text-sm text-foreground">
-            <input type="checkbox" className="h-4 w-4 rounded border-white/20" checked={form.track_stock} onChange={(e) => set("track_stock", e.target.checked)} />
-            Track stock &amp; alert when low
-          </label>
           <CostPriceMarkupFields
             cost={form.cost}
             price={form.price}
             onCostChange={(v) => set("cost", v)}
             onPriceChange={(v) => set("price", v)}
           />
+          <label className="col-span-2 flex items-start gap-3 rounded-md border border-white/10 px-3 py-3 cursor-pointer hover:bg-white/5 transition-colors">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 accent-primary"
+              checked={form.track_stock}
+              onChange={(e) => set("track_stock", e.target.checked)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-foreground">Track stock &amp; alert when low</span>
+              <span className="block text-xs text-muted-foreground mt-0.5">
+                Shows this part's stock badge and includes it in the dashboard's Low Inventory list. Turn off for parts you don't count exactly.
+              </span>
+            </span>
+          </label>
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
