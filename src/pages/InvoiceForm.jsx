@@ -120,7 +120,13 @@ export default function InvoiceForm() {
       const payload = {
         ...form,
         work_order_id: form.work_order_id || null,
-        lines: computed.map(({ description, quantity, unit_price, total }) => ({ description, quantity, unit_price, total })),
+        lines: computed.map(({ description, quantity, unit_price, total, inventory_item_id }) => ({
+          description,
+          quantity,
+          unit_price,
+          total,
+          inventory_item_id: inventory_item_id || null,
+        })),
         subtotal,
         tax,
         total,
