@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import ClientPicker from "@/components/ClientPicker";
 import VehiclePicker from "@/components/VehiclePicker";
 import InventoryItemPicker from "@/components/InventoryItemPicker";
+import { showError } from "@/lib/errorToast";
 import { Plus, Trash2, Save } from "lucide-react";
 
 const emptyServiceLine = () => ({ item_type: "service", pricing_mode: "flat", inventory_item_id: "", description: "", quantity: 1, unit_price: 0 });
@@ -146,6 +147,8 @@ export default function InvoiceForm() {
         try { await api.entities.WorkOrder.update(saved.work_order_id, { status: "Invoiced" }); } catch (e) {}
       }
       navigate(`/invoices/${saved.id}/view`);
+    } catch (err) {
+      showError(err, "Could not save this invoice.");
     } finally {
       setSaving(false);
     }
@@ -184,10 +187,7 @@ export default function InvoiceForm() {
         </Card>
 
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-xl font-bold uppercase tracking-wide">Line Items</h2>
-            <button type="button" onClick={addLine} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 px-3 py-1.5 text-sm hover:bg-white/5"><Plus className="h-4 w-4" /> Add Line</button>
-          </div>
+          <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-3">Line Items</h2>
           <div className="space-y-3">
             {form.lines.map((l, idx) => (
               <InvoiceLineEditor
@@ -201,6 +201,13 @@ export default function InvoiceForm() {
               />
             ))}
           </div>
+          <button
+            type="button"
+            onClick={addLine}
+            className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-dashed border-white/20 px-3 py-2.5 text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add Line
+          </button>
         </div>
 
         <Card className="p-4 ml-auto max-w-xs w-full">

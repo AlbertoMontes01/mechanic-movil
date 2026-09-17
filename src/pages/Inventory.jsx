@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
 import ImportCSVDialog from "@/components/ImportCSVDialog";
 import { exportToCSV } from "@/lib/csv";
+import { showError } from "@/lib/errorToast";
 import { Plus, Edit, Trash2, Package, Tag, Search, Download, Upload } from "lucide-react";
 
 const INVENTORY_COLUMNS = [
@@ -55,7 +56,7 @@ export default function Inventory() {
       await api.entities.InventoryItem.delete(id);
       reload();
     } catch (err) {
-      alert(err.message || "Could not delete this part.");
+      showError(err, "Could not delete this part.");
     } finally {
       setConfirmDelId(null);
     }

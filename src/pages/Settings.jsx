@@ -5,6 +5,7 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
+import { showError } from "@/lib/errorToast";
 import { Upload, Save, LogOut, Wrench, User } from "lucide-react";
 
 export default function Settings() {
@@ -36,7 +37,7 @@ export default function Settings() {
       await api.auth.updateProfile({ name });
       await checkUserAuth();
     } catch (err) {
-      alert(err.message || "Could not save your name.");
+      showError(err, "Could not save your name.");
     } finally {
       setSavingName(false);
     }
@@ -50,7 +51,7 @@ export default function Settings() {
       const { file_url } = await api.integrations.Core.UploadPublicFile({ file });
       set("logo_url", file_url);
     } catch (err) {
-      alert(err.message || "Could not upload this logo.");
+      showError(err, "Could not upload this logo.");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -63,6 +64,8 @@ export default function Settings() {
     try {
       await save({ ...form, tax_rate: Number(form.tax_rate) || 0 });
       refresh();
+    } catch (err) {
+      showError(err, "Could not save shop settings.");
     } finally {
       setSaving(false);
     }

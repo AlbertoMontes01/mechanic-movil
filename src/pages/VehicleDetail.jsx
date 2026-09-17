@@ -8,6 +8,7 @@ import { generateVehicleHistoryPDF } from "@/lib/pdf";
 import { PageHeader, Loader, EmptyState, Card, StatusBadge } from "@/components/shared";
 import VehicleForm from "@/components/VehicleForm";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { showError } from "@/lib/errorToast";
 import { Edit, Plus, Trash2, Download, Link2, Wrench, ClipboardList, FileText } from "lucide-react";
 
 export default function VehicleDetail() {
@@ -52,6 +53,8 @@ export default function VehicleDetail() {
     try {
       await api.entities.Vehicle.update(id, { common_parts: parts });
       reload();
+    } catch (err) {
+      showError(err, "Could not save this vehicle's parts.");
     } finally {
       setSavingParts(false);
     }

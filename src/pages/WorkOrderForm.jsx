@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import ClientPicker from "@/components/ClientPicker";
 import VehiclePicker from "@/components/VehiclePicker";
 import InventoryItemPicker from "@/components/InventoryItemPicker";
+import { showError } from "@/lib/errorToast";
 import { Plus, Trash2, Save } from "lucide-react";
 
 const STATUSES = ["Draft", "In Progress", "Ready to Invoice", "Invoiced"];
@@ -100,6 +101,8 @@ export default function WorkOrderForm() {
       if (isEdit) saved = await api.entities.WorkOrder.update(id, payload);
       else saved = await api.entities.WorkOrder.create(payload);
       navigate(`/work-orders/${saved.id}/view`);
+    } catch (err) {
+      showError(err, "Could not save this work order.");
     } finally {
       setSaving(false);
     }
