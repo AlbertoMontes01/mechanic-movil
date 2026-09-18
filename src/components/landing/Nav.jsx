@@ -13,6 +13,7 @@ export default function Nav() {
         </Link>
         <nav className="hidden items-center gap-6 sm:flex">
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</a>
+          {/* <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</a> */}
         </nav>
         <div className="flex items-center gap-2">
           <Link to="/login" className="px-2 text-sm text-muted-foreground hover:text-foreground">Log in</Link>

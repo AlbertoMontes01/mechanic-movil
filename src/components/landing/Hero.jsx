@@ -33,6 +33,7 @@ export default function Hero() {
               <Link to="/register" className="rounded-md bg-primary px-6 py-3 text-center font-semibold text-primary-foreground">Start</Link>
               <a href="#features" className="rounded-md border border-white/15 px-6 py-3 text-center font-semibold text-foreground hover:bg-white/5">See features</a>
             </div>
+            {/* <p className="mt-4 text-sm text-muted-foreground">Card required to start · nothing charged for 30 days · $10/mo after</p> */}
           </div>
 
           <div className="mx-auto w-full max-w-[280px]">
