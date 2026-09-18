@@ -4,15 +4,15 @@
 // also catches browser-normalized bypasses like a leading backslash
 // ("/\evil.com", which parses the same as "//evil.com").
 export function safeReturnTo() {
-  if (typeof window === 'undefined') return '/';
+  if (typeof window === 'undefined') return '/app';
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('returnTo');
-  if (!raw || !raw.startsWith('/')) return '/';
+  if (!raw || !raw.startsWith('/')) return '/app';
   try {
     const resolved = new URL(raw, window.location.origin);
-    if (resolved.origin !== window.location.origin) return '/';
+    if (resolved.origin !== window.location.origin) return '/app';
     return resolved.pathname + resolved.search + resolved.hash;
   } catch {
-    return '/';
+    return '/app';
   }
 }

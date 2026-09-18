@@ -16,6 +16,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
+import Landing from '@/pages/Landing';
 // App pages
 import Home from '@/pages/Home';
 import Clients from '@/pages/Clients';
@@ -55,7 +56,7 @@ const AuthenticatedApp = () => {
     <ShopSettingsProvider>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/app" element={<Home />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/vehicles" element={<Vehicles />} />
@@ -91,6 +92,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/" element={<Landing />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
               <Route path="*" element={<AuthenticatedApp />} />
             </Route>

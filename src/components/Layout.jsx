@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/vehicles", label: "Vehicles", icon: Car },
   { to: "/inventory", label: "Inventory", icon: Package },
@@ -19,7 +19,7 @@ const NAV = [
 ];
 
 const MOBILE_TABS = [
-  { to: "/", label: "Home", icon: LayoutDashboard, end: true },
+  { to: "/app", label: "Home", icon: LayoutDashboard, end: true },
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/inventory", label: "Parts", icon: Package },
   { to: "/invoices", label: "Invoices", icon: FileText },
@@ -96,7 +96,7 @@ export default function Layout() {
       <div className={`flex-1 flex flex-col min-w-0 ${!isMobile ? "md:ml-16" : ""}`}>
         {/* Top header */}
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-white/10 bg-[hsl(var(--sidebar-background))]/90 px-3 backdrop-blur-md">
-          <Link to="/" className="flex items-center gap-2 lg:hidden">
+          <Link to="/app" className="flex items-center gap-2 lg:hidden">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
               <Wrench className="h-4 w-4" />
             </div>
