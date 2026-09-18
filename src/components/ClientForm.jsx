@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { api } from "@/api/client";
 import { Field } from "@/components/shared";
-import { showError } from "@/lib/errorToast";
+import { showError, showSuccess } from "@/lib/errorToast";
 
 export default function ClientForm({ open, onOpenChange, onSaved, client }) {
   const [form, setForm] = useState({ name: "", address: "", city: "", state: "", zip: "", phone: "", email: "" });
@@ -27,6 +27,7 @@ export default function ClientForm({ open, onOpenChange, onSaved, client }) {
       const saved = client?.id ? await api.entities.Client.update(client.id, form) : await api.entities.Client.create(form);
       onSaved?.(saved);
       onOpenChange(false);
+      showSuccess(client?.id ? "Client updated" : "Client created");
     } catch (err) {
       showError(err, "Could not save this client.");
     } finally {

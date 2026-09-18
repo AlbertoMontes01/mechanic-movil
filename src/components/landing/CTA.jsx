@@ -6,7 +6,7 @@ export default function CTA() {
     <section className="mx-auto max-w-6xl px-4 py-16">
       <div className="rounded-2xl border border-primary/30 bg-primary/10 p-8 text-center">
         <h2 className="font-display text-3xl font-bold uppercase tracking-tight">Start today. Free for 30 days.</h2>
-        <p className="mt-3 text-muted-foreground">Create your account in 2 minutes. No card, no commitment.</p>
+        <p className="mt-3 text-muted-foreground">Create your account in 2 minutes. Card required — nothing charged for 30 days.</p>
         <Link to="/register" className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-8 py-3 font-semibold text-primary-foreground">
           <Wrench className="h-4 w-4" /> Create my account
         </Link>

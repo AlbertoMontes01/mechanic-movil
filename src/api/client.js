@@ -79,6 +79,15 @@ async function request(path, { method = 'GET', body, isForm = false, _retried = 
   const data = isJson ? await res.json() : await res.text();
 
   if (!res.ok) {
+    // The account has no usable subscription (trial expired, payment
+    // failed and never recovered, cancelled, etc.) -- this can happen on
+    // ANY authenticated request, not just a specific page, since it's the
+    // backend's requireActiveSubscription middleware reacting to a Lemon
+    // Squeezy webhook that arrived since the page loaded. A hard redirect
+    // here means no individual page has to know or check for this itself.
+    if (res.status === 402 && isJson && data?.error === 'subscription_required') {
+      window.location.href = '/subscribe';
+    }
     throw new Error((isJson && data?.error) || `Request failed (${res.status})`);
   }
   return data;
@@ -162,5 +171,18 @@ export const api = {
     resetPasswordRequest: (email) => request('/auth/forgot-password', { method: 'POST', body: { email } }),
     resetPassword: ({ resetToken, newPassword }) =>
       request('/auth/reset-password', { method: 'POST', body: { resetToken, newPassword } }),
+  },
+  billing: {
+    createCheckout: () => request('/checkout', { method: 'POST' }),
+    getSubscription: () => request('/subscription'),
+  },
+  testimonials: {
+    getPublic: () => request('/testimonials/public'),
+    getMine: () => request('/testimonials/me'),
+    save: ({ rating, comment, authorName }) =>
+      request('/testimonials/me', { method: 'PUT', body: { rating, comment, authorName } }),
+  },
+  stats: {
+    getPublic: () => request('/stats/public'),
   },
 };

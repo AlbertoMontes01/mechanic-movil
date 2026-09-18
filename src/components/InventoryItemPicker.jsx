@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/shared";
 import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
-import { showError } from "@/lib/errorToast";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { PackagePlus } from "lucide-react";
 
 // Inventory-item picker with an explicit "not in your inventory yet" empty
@@ -98,6 +98,7 @@ function QuickAddPartDialog({ open, onOpenChange, categories, onCreated }) {
       const payload = { ...form, stock: 1, cost: Number(form.cost) || 0, price: Number(form.price) || 0 };
       const item = await api.entities.InventoryItem.create(payload);
       onCreated(item);
+      showSuccess("Part added");
     } catch (err) {
       showError(err, "Could not add this part.");
     } finally {

@@ -15,7 +15,7 @@ export default function Pricing() {
     <section id="pricing" className="border-y border-white/10 bg-card/30">
       <div className="mx-auto max-w-3xl px-4 py-16">
         <h2 className="text-center font-display text-3xl font-bold uppercase tracking-tight">Simple pricing, no surprises</h2>
-        <p className="mt-3 text-center text-muted-foreground">30 days free. Then $10/month. No contracts, cancel anytime.</p>
+        <p className="mt-3 text-center text-muted-foreground">30 days free with a card on file. Then $10/month. No contracts, cancel anytime before your trial ends and you won't be charged.</p>
         <div className="mt-8 rounded-2xl border border-primary/40 bg-background p-8 text-center shadow-xl">
           <p className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Full plan</p>
           <div className="mt-3 flex items-end justify-center gap-1">
@@ -32,9 +32,6 @@ export default function Pricing() {
             ))}
           </div>
         </div>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Other tools cost <span className="line-through">$200–$450/month</span> and are built for big shops. PitStop is built for you.
-        </p>
       </div>
     </section>
   );

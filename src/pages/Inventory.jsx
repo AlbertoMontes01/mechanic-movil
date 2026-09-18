@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import CostPriceMarkupFields from "@/components/CostPriceMarkupFields";
 import ImportCSVDialog from "@/components/ImportCSVDialog";
 import { exportToCSV } from "@/lib/csv";
-import { showError } from "@/lib/errorToast";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { Plus, Edit, Trash2, Package, Tag, Search, Download, Upload } from "lucide-react";
 
 const INVENTORY_COLUMNS = [
@@ -55,6 +55,7 @@ export default function Inventory() {
     try {
       await api.entities.InventoryItem.delete(id);
       reload();
+      showSuccess("Part deleted");
     } catch (err) {
       showError(err, "Could not delete this part.");
     } finally {
@@ -223,6 +224,9 @@ function ItemForm({ open, onOpenChange, onSaved, item, categories }) {
       else await api.entities.InventoryItem.create(payload);
       onSaved?.();
       onOpenChange(false);
+      showSuccess(item?.id ? "Part updated" : "Part created");
+    } catch (err) {
+      showError(err, "Could not save this part.");
     } finally {
       setSaving(false);
     }
@@ -282,14 +286,22 @@ function CategoryManager({ open, onOpenChange, categories, onSaved }) {
       await api.entities.InventoryCategory.create({ name: name.trim() });
       setName("");
       onSaved?.();
+      showSuccess("Category added");
+    } catch (err) {
+      showError(err, "Could not add this category.");
     } finally {
       setSaving(false);
     }
   };
 
   const remove = async (id) => {
-    await api.entities.InventoryCategory.delete(id);
-    onSaved?.();
+    try {
+      await api.entities.InventoryCategory.delete(id);
+      onSaved?.();
+      showSuccess("Category deleted");
+    } catch (err) {
+      showError(err, "Could not delete this category.");
+    }
   };
 
   return (

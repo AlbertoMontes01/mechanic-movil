@@ -5,6 +5,7 @@ import { useAsync } from "@/lib/useAsync";
 import { PageHeader, Loader, EmptyState, Card } from "@/components/shared";
 import ClientForm from "@/components/ClientForm";
 import VehicleForm from "@/components/VehicleForm";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { Edit, Plus, Trash2, Car, Phone, Mail, MapPin } from "lucide-react";
 
 export default function ClientDetail() {
@@ -26,8 +27,13 @@ export default function ClientDetail() {
   const [client, vehicles] = data;
 
   const doDelete = async () => {
-    await api.entities.Client.delete(id);
-    navigate("/clients");
+    try {
+      await api.entities.Client.delete(id);
+      showSuccess("Client deleted");
+      navigate("/clients");
+    } catch (err) {
+      showError(err, "Could not delete this client.");
+    }
   };
 
   return (

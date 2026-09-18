@@ -5,8 +5,8 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { showError } from "@/lib/errorToast";
-import { Upload, Save, LogOut, Wrench, User } from "lucide-react";
+import { showError, showSuccess } from "@/lib/errorToast";
+import { Upload, Save, LogOut, Wrench, User, Star, MessageSquareQuote } from "lucide-react";
 
 export default function Settings() {
   const { settings, save, loading, refresh } = useShopSettings();
@@ -16,6 +16,8 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [testimonial, setTestimonial] = useState({ rating: 5, comment: "", authorName: "" });
+  const [savingTestimonial, setSavingTestimonial] = useState(false);
 
   useEffect(() => {
     if (settings) setForm({ shop_name: settings.shop_name || "", logo_url: settings.logo_url || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0, invoice_terms: settings.invoice_terms || "" });
@@ -25,6 +27,12 @@ export default function Settings() {
   useEffect(() => {
     setName(user?.name || "");
   }, [user]);
+
+  useEffect(() => {
+    api.testimonials.getMine().then((t) => {
+      if (t) setTestimonial({ rating: t.rating, comment: t.comment, authorName: t.author_name === "Verified PitStop user" ? "" : t.author_name });
+    }).catch(() => {});
+  }, []);
 
   if (loading || !form) return <Loader />;
 
@@ -36,10 +44,25 @@ export default function Settings() {
     try {
       await api.auth.updateProfile({ name });
       await checkUserAuth();
+      showSuccess("Name saved");
     } catch (err) {
       showError(err, "Could not save your name.");
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const submitTestimonial = async (e) => {
+    e.preventDefault();
+    setSavingTestimonial(true);
+    try {
+      const saved = await api.testimonials.save(testimonial);
+      setTestimonial({ rating: saved.rating, comment: saved.comment, authorName: saved.author_name === "Verified PitStop user" ? "" : saved.author_name });
+      showSuccess("Testimonial saved — thanks for the feedback!");
+    } catch (err) {
+      showError(err, "Could not save your testimonial.");
+    } finally {
+      setSavingTestimonial(false);
     }
   };
 
@@ -50,6 +73,7 @@ export default function Settings() {
     try {
       const { file_url } = await api.integrations.Core.UploadPublicFile({ file });
       set("logo_url", file_url);
+      showSuccess("Logo uploaded");
     } catch (err) {
       showError(err, "Could not upload this logo.");
     } finally {
@@ -64,6 +88,7 @@ export default function Settings() {
     try {
       await save({ ...form, tax_rate: Number(form.tax_rate) || 0 });
       refresh();
+      showSuccess("Settings saved");
     } catch (err) {
       showError(err, "Could not save shop settings.");
     } finally {
@@ -130,6 +155,51 @@ export default function Settings() {
             <input className="input-base pl-9" placeholder="Jane Smith" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <Button type="submit" disabled={savingName || !name.trim()} className="gap-1.5"><Save className="h-4 w-4" /> {savingName ? "Saving…" : "Save"}</Button>
+        </form>
+      </Card>
+
+      <Card className="max-w-lg p-4 mt-6">
+        <p className="field-label mb-2 flex items-center gap-1.5"><MessageSquareQuote className="h-4 w-4" /> Leave a Testimonial</p>
+        <p className="text-xs text-muted-foreground/70 mb-3">Shown publicly on the PitStop landing page. Your email and login are never shown.</p>
+        <form onSubmit={submitTestimonial} className="space-y-3">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setTestimonial((t) => ({ ...t, rating: n }))}
+                aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                className="p-0.5"
+              >
+                <Star
+                  className={n <= testimonial.rating ? "h-6 w-6 text-primary" : "h-6 w-6 text-muted-foreground/30"}
+                  fill={n <= testimonial.rating ? "currentColor" : "none"}
+                />
+              </button>
+            ))}
+          </div>
+          <Field label="Your testimonial">
+            <textarea
+              className="input-base min-h-[80px]"
+              placeholder="What's PitStop done for your shop?"
+              value={testimonial.comment}
+              onChange={(e) => setTestimonial((t) => ({ ...t, comment: e.target.value }))}
+              maxLength={1000}
+            />
+          </Field>
+          <Field label="Display name (optional)" hint={'e.g. "Alberto M., Miami FL" -- leave blank to show as "Verified PitStop user".'}>
+            <input
+              className="input-base"
+              placeholder="Verified PitStop user"
+              value={testimonial.authorName}
+              onChange={(e) => setTestimonial((t) => ({ ...t, authorName: e.target.value }))}
+            />
+          </Field>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={savingTestimonial || !testimonial.comment.trim()} className="gap-1.5">
+              <Save className="h-4 w-4" /> {savingTestimonial ? "Saving…" : "Save Testimonial"}
+            </Button>
+          </div>
         </form>
       </Card>
 

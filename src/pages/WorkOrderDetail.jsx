@@ -6,6 +6,7 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { fmtDate, vehicleIdLabel } from "@/lib/format";
 import { generateWorkOrderPDF } from "@/lib/pdf";
 import { PageHeader, Loader, EmptyState, Card, StatusBadge } from "@/components/shared";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { Edit, Download, FileText, Trash2, Share2 } from "lucide-react";
 
 export default function WorkOrderDetail() {
@@ -29,8 +30,13 @@ export default function WorkOrderDetail() {
   const vehicle = vehicles.find((v) => v.id === wo.vehicle_id);
 
   const doDelete = async () => {
-    await api.entities.WorkOrder.delete(id);
-    navigate("/work-orders");
+    try {
+      await api.entities.WorkOrder.delete(id);
+      showSuccess("Work order deleted");
+      navigate("/work-orders");
+    } catch (err) {
+      showError(err, "Could not delete this work order.");
+    }
   };
 
   const sharePdf = async () => {

@@ -5,7 +5,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { api } from "@/api/client";
 import { Field } from "@/components/shared";
 import ClientPicker from "@/components/ClientPicker";
-import { showError } from "@/lib/errorToast";
+import { showError, showSuccess } from "@/lib/errorToast";
 
 const TYPES = ["Truck", "Car", "SUV", "Van", "Motorcycle", "Other"];
 
@@ -45,6 +45,7 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
       const saved = vehicle?.id ? await api.entities.Vehicle.update(vehicle.id, payload) : await api.entities.Vehicle.create(payload);
       onSaved?.(saved);
       onOpenChange(false);
+      showSuccess(vehicle?.id ? "Vehicle updated" : "Vehicle added");
     } catch (err) {
       showError(err, "Could not save this vehicle.");
     } finally {

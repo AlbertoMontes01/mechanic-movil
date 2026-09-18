@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import ClientPicker from "@/components/ClientPicker";
 import VehiclePicker from "@/components/VehiclePicker";
 import InventoryItemPicker from "@/components/InventoryItemPicker";
-import { showError } from "@/lib/errorToast";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { Plus, Trash2, Save } from "lucide-react";
 
 const emptyServiceLine = () => ({ item_type: "service", pricing_mode: "flat", inventory_item_id: "", description: "", quantity: 1, unit_price: 0 });
@@ -146,6 +146,7 @@ export default function InvoiceForm() {
       if (!isEdit && saved.work_order_id) {
         try { await api.entities.WorkOrder.update(saved.work_order_id, { status: "Invoiced" }); } catch (e) {}
       }
+      showSuccess(isEdit ? "Invoice updated" : "Invoice created");
       navigate(`/invoices/${saved.id}/view`);
     } catch (err) {
       showError(err, "Could not save this invoice.");

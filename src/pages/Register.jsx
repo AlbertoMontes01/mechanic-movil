@@ -27,10 +27,22 @@ export default function Register() {
     setLoading(true);
     try {
       await api.auth.register({ name, email, password });
-      window.location.href = safeReturnTo();
+      // Billing is dark-launched: most accounts aren't actually subject to
+      // the paywall yet (see requireActiveSubscription/isEnforcedForMechanic
+      // on the backend), so only send this one to checkout when the backend
+      // says it actually matters -- otherwise behave exactly like before.
+      // Lemon Squeezy redirects back to /app on success; the original
+      // returnTo (e.g. an MCP OAuth consent flow) doesn't survive that round
+      // trip, which is an accepted gap for now.
+      const { payment_required } = await api.billing.getSubscription();
+      if (payment_required) {
+        const { url } = await api.billing.createCheckout();
+        window.location.href = url;
+      } else {
+        window.location.href = safeReturnTo();
+      }
     } catch (err) {
       setError(err.message || "Registration failed");
-    } finally {
       setLoading(false);
     }
   };

@@ -17,7 +17,6 @@ export default function Nav() {
         </nav>
         <div className="flex items-center gap-2">
           <Link to="/login" className="px-2 text-sm text-muted-foreground hover:text-foreground">Log in</Link>
-          <Link to="/register" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Try free</Link>
         </div>
       </div>
     </header>

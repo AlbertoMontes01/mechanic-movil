@@ -17,6 +17,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import Landing from '@/pages/Landing';
+import Subscribe from '@/pages/Subscribe';
 // App pages
 import Home from '@/pages/Home';
 import Clients from '@/pages/Clients';
@@ -93,6 +94,7 @@ function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/" element={<Landing />} />
+            <Route path="/subscribe" element={<Subscribe />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
               <Route path="*" element={<AuthenticatedApp />} />
             </Route>

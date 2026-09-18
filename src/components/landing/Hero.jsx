@@ -21,7 +21,7 @@ export default function Hero() {
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Built for independent mechanics
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Made by independent mobile diesel mechanics, for independent mobile diesel mechanics
             </div>
             <h1 className="mt-5 font-display text-4xl font-bold uppercase leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Your whole shop,<br /><span className="text-primary">in your pocket.</span>
@@ -30,10 +30,10 @@ export default function Hero() {
               Manage clients, vehicles, work orders, inventory, and invoices in one place — right from your phone. Ditch the paper and notebooks.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to="/register" className="rounded-md bg-primary px-6 py-3 text-center font-semibold text-primary-foreground">Start free for 30 days</Link>
+              <Link to="/register" className="rounded-md bg-primary px-6 py-3 text-center font-semibold text-primary-foreground">Start</Link>
               <a href="#features" className="rounded-md border border-white/15 px-6 py-3 text-center font-semibold text-foreground hover:bg-white/5">See features</a>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">No credit card required · $10/mo after trial</p>
+            <p className="mt-4 text-sm text-muted-foreground">Card required to start · nothing charged for 30 days · $10/mo after</p>
           </div>
 
           <div className="mx-auto w-full max-w-[280px]">

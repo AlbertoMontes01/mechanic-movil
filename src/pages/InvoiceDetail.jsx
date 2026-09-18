@@ -6,6 +6,7 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { money, fmtDate } from "@/lib/format";
 import { generateInvoicePDF } from "@/lib/pdf";
 import { PageHeader, Loader, EmptyState, Card, StatusBadge } from "@/components/shared";
+import { showError, showSuccess } from "@/lib/errorToast";
 import { Edit, Download, Trash2, Share2, CheckCircle2, RotateCcw } from "lucide-react";
 
 export default function InvoiceDetail() {
@@ -29,13 +30,24 @@ export default function InvoiceDetail() {
   const vehicle = vehicles.find((v) => v.id === inv.vehicle_id);
 
   const togglePaid = async () => {
-    await api.entities.Invoice.update(id, { status: inv.status === "paid" ? "pending" : "paid" });
-    reload();
+    try {
+      const nowPaid = inv.status !== "paid";
+      await api.entities.Invoice.update(id, { status: nowPaid ? "paid" : "pending" });
+      reload();
+      showSuccess(nowPaid ? "Marked as paid" : "Marked as pending");
+    } catch (err) {
+      showError(err, "Could not update this invoice's status.");
+    }
   };
 
   const doDelete = async () => {
-    await api.entities.Invoice.delete(id);
-    navigate("/invoices");
+    try {
+      await api.entities.Invoice.delete(id);
+      showSuccess("Invoice deleted");
+      navigate("/invoices");
+    } catch (err) {
+      showError(err, "Could not delete this invoice.");
+    }
   };
 
   return (
