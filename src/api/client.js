@@ -185,4 +185,8 @@ export const api = {
   stats: {
     getPublic: () => request('/stats/public'),
   },
+  survey: {
+    getMine: () => request('/survey/me'),
+    submit: (data) => request('/survey/me', { method: 'POST', body: data }),
+  },
 };

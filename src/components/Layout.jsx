@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, Car, Package, FileText, Settings as SettingsIcon,
@@ -7,6 +7,8 @@ import {
 import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { api } from "@/api/client";
+import OnboardingSurvey from "@/components/OnboardingSurvey";
 
 const NAV = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -34,6 +36,14 @@ export default function Layout() {
   const navigate = useNavigate();
   const { settings } = useShopSettings();
   const { logout } = useAuth();
+  // null = still checking, true = must answer before doing anything else.
+  // Checked on every mount of Layout (i.e. every authenticated page load,
+  // not just /app) so there's no route that skips it until answered.
+  const [surveyNeeded, setSurveyNeeded] = useState(null);
+
+  useEffect(() => {
+    api.survey.getMine().then((s) => setSurveyNeeded(!s)).catch(() => setSurveyNeeded(false));
+  }, []);
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -41,7 +51,9 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <>
+      {surveyNeeded && <OnboardingSurvey onDone={() => setSurveyNeeded(false)} />}
+      <div className="min-h-screen bg-background text-foreground flex">
       {/* Desktop sidebar */}
       {!isMobile && (
         <aside
@@ -159,7 +171,8 @@ export default function Layout() {
           {fabOpen ? <X className="h-6 w-6" /> : <Plus className="h-7 w-7" />}
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
