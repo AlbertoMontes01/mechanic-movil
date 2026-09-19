@@ -93,29 +93,36 @@ function toggle(arr, value) {
 export default function OnboardingSurvey({ onDone }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [attempted, setAttempted] = useState(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const toggleIn = (k, v) => setForm((f) => ({ ...f, [k]: toggle(f[k], v) }));
 
-  const missing = [];
-  if (!form.location.trim()) missing.push("location");
-  if (form.roles.length === 0) missing.push("role");
-  if (form.worksOn.length === 0) missing.push("what you work on");
-  if (form.howYouWork.length === 0) missing.push("how you work");
-  if (!form.yearsExperience) missing.push("years of experience");
-  if (!form.ageRange) missing.push("age range");
-  if (!form.operationSize) missing.push("operation size");
-  if (form.whatKeepsRunning.length === 0) missing.push("what keeps your operation running");
-  if (form.trackingMethods.length === 0) missing.push("how you track jobs");
+  // Which questions are still unanswered, keyed by question number.
+  // Computed live so a question's red state clears the moment it's answered.
+  const unanswered = new Set();
+  if (!form.location.trim()) unanswered.add(1);
+  if (form.roles.length === 0) unanswered.add(2);
+  if (form.worksOn.length === 0) unanswered.add(3);
+  if (form.howYouWork.length === 0) unanswered.add(4);
+  if (!form.yearsExperience) unanswered.add(5);
+  if (!form.ageRange) unanswered.add(6);
+  if (!form.operationSize) unanswered.add(7);
+  if (form.whatKeepsRunning.length === 0) unanswered.add(8);
+  if (form.trackingMethods.length === 0) unanswered.add(9);
+
+  const invalid = (n) => attempted && unanswered.has(n);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (missing.length > 0) {
-      setError(`Please answer: ${missing.join(", ")}.`);
+    setAttempted(true);
+    if (unanswered.size > 0) {
+      const first = Math.min(...unanswered);
+      const el = document.getElementById(`survey-q-${first}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.querySelector("input")?.focus({ preventScroll: true });
       return;
     }
-    setError("");
     setSubmitting(true);
     try {
       await api.survey.submit(form);
@@ -142,12 +149,19 @@ export default function OnboardingSurvey({ onDone }) {
           </p>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-950/40 p-3 text-sm text-red-200">{error}</div>
+        {attempted && unanswered.size > 0 && (
+          <div
+            role="alert"
+            className="sticky top-2 z-10 mb-4 rounded-lg border border-red-500/40 bg-red-950/80 p-3 text-sm text-red-200 backdrop-blur"
+          >
+            {unanswered.size === 1
+              ? `1 question still needs an answer (question ${[...unanswered][0]}).`
+              : `${unanswered.size} questions still need an answer (questions ${[...unanswered].sort((a, b) => a - b).join(", ")}).`}
+          </div>
         )}
 
         <form onSubmit={submit} className="space-y-6">
-          <Question n={1} label="Where are you located?">
+          <Question invalid={invalid(1)} n={1} label="Where are you located?">
             <input
               className="input-base"
               placeholder="City, State/Province, Country"
@@ -156,34 +170,34 @@ export default function OnboardingSurvey({ onDone }) {
             />
           </Question>
 
-          <Question n={2} label="What best describes what you do?" hint="Select all that apply">
+          <Question invalid={invalid(2)} n={2} label="What best describes what you do?" hint="Select all that apply">
             <CheckboxGrid options={ROLE_OPTIONS} value={form.roles} onToggle={(v) => toggleIn("roles", v)} />
             <OtherInput value={form.roleOther} onChange={(v) => set("roleOther", v)} />
           </Question>
 
-          <Question n={3} label="What do you normally work on?" hint="Select all that apply">
+          <Question invalid={invalid(3)} n={3} label="What do you normally work on?" hint="Select all that apply">
             <CheckboxGrid options={WORKS_ON_OPTIONS} value={form.worksOn} onToggle={(v) => toggleIn("worksOn", v)} />
             <OtherInput value={form.worksOnOther} onChange={(v) => set("worksOnOther", v)} />
           </Question>
 
-          <Question n={4} label="How do you currently work?" hint="Select all that apply">
+          <Question invalid={invalid(4)} n={4} label="How do you currently work?" hint="Select all that apply">
             <CheckboxGrid options={HOW_YOU_WORK_OPTIONS} value={form.howYouWork} onToggle={(v) => toggleIn("howYouWork", v)} />
             <OtherInput value={form.howYouWorkOther} onChange={(v) => set("howYouWorkOther", v)} />
           </Question>
 
-          <Question n={5} label="How many years have you been turning wrenches? 🔧">
+          <Question invalid={invalid(5)} n={5} label="How many years have you been turning wrenches? 🔧">
             <RadioGrid options={YEARS_OPTIONS} value={form.yearsExperience} onChange={(v) => set("yearsExperience", v)} />
           </Question>
 
-          <Question n={6} label="What's your age range?">
+          <Question invalid={invalid(6)} n={6} label="What's your age range?">
             <RadioGrid options={AGE_OPTIONS} value={form.ageRange} onChange={(v) => set("ageRange", v)} />
           </Question>
 
-          <Question n={7} label="How big is your operation?">
+          <Question invalid={invalid(7)} n={7} label="How big is your operation?">
             <RadioGrid options={SIZE_OPTIONS} value={form.operationSize} onChange={(v) => set("operationSize", v)} />
           </Question>
 
-          <Question n={8} label="Be honest… what actually keeps your operation running?" hint="Select all that apply">
+          <Question invalid={invalid(8)} n={8} label="Be honest… what actually keeps your operation running?" hint="Select all that apply">
             <CheckboxGrid
               options={KEEPS_RUNNING_OPTIONS}
               value={form.whatKeepsRunning}
@@ -191,7 +205,7 @@ export default function OnboardingSurvey({ onDone }) {
             />
           </Question>
 
-          <Question n={9} label="How do you currently keep track of your jobs and customers?" hint="Select all that apply">
+          <Question invalid={invalid(9)} n={9} label="How do you currently keep track of your jobs and customers?" hint="Select all that apply">
             <CheckboxGrid
               options={TRACKING_OPTIONS}
               value={form.trackingMethods}
@@ -215,13 +229,21 @@ export default function OnboardingSurvey({ onDone }) {
   );
 }
 
-function Question({ n, label, hint, children }) {
+function Question({ n, label, hint, invalid, children }) {
   return (
-    <div className="border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
-      <p className="field-label">
+    <div
+      id={`survey-q-${n}`}
+      className={
+        invalid
+          ? "scroll-mt-16 rounded-lg border border-red-500/60 bg-red-950/20 p-3 sm:p-4"
+          : "border-t border-white/10 pt-5 first:border-t-0 first:pt-0"
+      }
+    >
+      <p className={invalid ? "field-label !text-red-300" : "field-label"}>
         {n}. {label}
       </p>
       {hint && <p className="mb-2 text-xs text-muted-foreground/70">{hint}</p>}
+      {invalid && <p className="mt-1 text-xs font-medium text-red-300">This question needs an answer.</p>}
       <div className="mt-2">{children}</div>
     </div>
   );
