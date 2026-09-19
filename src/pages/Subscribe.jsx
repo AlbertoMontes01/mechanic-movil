@@ -25,6 +25,19 @@ export default function Subscribe() {
     }
   }, [authChecked, isLoadingAuth, isAuthenticated, navigate]);
 
+  // Back from the hosted checkout/portal restores this page with its
+  // loading state still set -- reset it.
+  useEffect(() => {
+    const onShow = (e) => {
+      if (e.persisted) {
+        setLoading(false);
+        setOpeningPortal(false);
+      }
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   const handleSubscribe = async () => {
     setError("");
     setLoading(true);

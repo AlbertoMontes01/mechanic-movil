@@ -69,6 +69,14 @@ export default function Settings() {
     }
   };
 
+  // Coming back with the browser's Back button restores this page from
+  // memory with the "Opening…" state still set -- reset it.
+  useEffect(() => {
+    const onShow = (e) => e.persisted && setOpeningPortal(false);
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   const openPortal = async () => {
     setOpeningPortal(true);
     try {
