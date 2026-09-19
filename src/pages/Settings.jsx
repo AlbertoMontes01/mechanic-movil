@@ -5,6 +5,7 @@ import { useShopSettings } from "@/lib/ShopSettingsContext";
 import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { showError, showSuccess } from "@/lib/errorToast";
 import { Upload, Save, LogOut, Wrench, User, Star, MessageSquareQuote, CreditCard } from "lucide-react";
 
@@ -50,6 +51,23 @@ export default function Settings() {
   useEffect(() => {
     api.billing.getSubscription().then(setSub).catch(() => {});
   }, []);
+
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [changingSub, setChangingSub] = useState(false);
+
+  const changeSubscription = async (action, successMessage) => {
+    setChangingSub(true);
+    try {
+      await action();
+      setSub(await api.billing.getSubscription());
+      setCancelOpen(false);
+      showSuccess(successMessage);
+    } catch (err) {
+      showError(err, "Could not update your subscription. Please try again.");
+    } finally {
+      setChangingSub(false);
+    }
+  };
 
   const openPortal = async () => {
     setOpeningPortal(true);
@@ -246,11 +264,49 @@ export default function Settings() {
           <p className="field-label mb-2 flex items-center gap-1.5"><CreditCard className="h-4 w-4" /> Subscription</p>
           <p className="text-sm text-foreground">{SUBSCRIPTION_LABELS[sub.status]}</p>
           <p className="text-xs text-muted-foreground/70 mt-1">{subscriptionDetail(sub)}</p>
-          <Button type="button" variant="outline" onClick={openPortal} disabled={openingPortal} className="mt-3">
-            {openingPortal ? "Opening…" : "Manage or cancel subscription"}
-          </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {sub.status === "cancelled" && sub.ends_at && new Date(sub.ends_at) > new Date() && (
+              <Button type="button" onClick={() => changeSubscription(api.billing.resumeSubscription, "Your subscription is active again.")} disabled={changingSub}>
+                {changingSub ? "Resuming…" : "Resume subscription"}
+              </Button>
+            )}
+            {["on_trial", "active", "past_due", "unpaid", "paused"].includes(sub.status) && (
+              <Button type="button" variant="outline" onClick={() => setCancelOpen(true)}>
+                Cancel subscription
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={openPortal} disabled={openingPortal}>
+              {openingPortal ? "Opening…" : "Update card & invoices"}
+            </Button>
+          </div>
         </Card>
       )}
+
+      <Dialog open={cancelOpen} onOpenChange={(o) => !changingSub && setCancelOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel your subscription?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              You'll keep full access until{" "}
+              <span className="text-foreground font-medium">
+                {sub && (sub.status === "on_trial" ? sub.trial_ends_at : sub.renews_at) ? fmtDate(sub.status === "on_trial" ? sub.trial_ends_at : sub.renews_at) : "the end of your current period"}
+              </span>
+              , and you won't be charged again.
+            </p>
+            <p>Your clients, vehicles, work orders and invoices stay saved. You can resubscribe any time.</p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setCancelOpen(false)} disabled={changingSub}>
+              Keep my subscription
+            </Button>
+            <Button type="button" onClick={() => changeSubscription(api.billing.cancelSubscription, "Your subscription was cancelled.")} disabled={changingSub} className="bg-red-600 hover:bg-red-700 text-white">
+              {changingSub ? "Cancelling…" : "Yes, cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="max-w-lg p-4 mt-6">
         <p className="field-label mb-2">Account</p>

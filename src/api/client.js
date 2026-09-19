@@ -176,6 +176,8 @@ export const api = {
     createCheckout: () => request('/checkout', { method: 'POST' }),
     getSubscription: () => request('/subscription'),
     getPortalUrl: () => request('/subscription/portal'),
+    cancelSubscription: () => request('/subscription/cancel', { method: 'POST' }),
+    resumeSubscription: () => request('/subscription/resume', { method: 'POST' }),
   },
   testimonials: {
     getPublic: () => request('/testimonials/public'),
