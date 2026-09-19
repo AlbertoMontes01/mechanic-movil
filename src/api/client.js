@@ -175,6 +175,7 @@ export const api = {
   billing: {
     createCheckout: () => request('/checkout', { method: 'POST' }),
     getSubscription: () => request('/subscription'),
+    getPortalUrl: () => request('/subscription/portal'),
   },
   testimonials: {
     getPublic: () => request('/testimonials/public'),

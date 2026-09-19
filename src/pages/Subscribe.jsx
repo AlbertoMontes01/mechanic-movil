@@ -16,6 +16,8 @@ export default function Subscribe() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     if (authChecked && !isLoadingAuth && !isAuthenticated) {
@@ -32,12 +34,24 @@ export default function Subscribe() {
     } catch (err) {
       // 409 from POST /api/checkout: a subscription already exists on this
       // account, so sending them to a new checkout would double-bill them.
+      if (err.message === "already_subscribed") setHasSubscription(true);
       setError(
         err.message === "already_subscribed"
-          ? "You already have a PitStop subscription, so we can't start a new one. If you're still locked out, your payment may need attention. Check your email from Lemon Squeezy or contact support."
+          ? "You already have a PitStop subscription, so we can't start a new one. If you're locked out, your payment may need attention. Update your card or manage your subscription below."
           : err.message || "Something went wrong. Please try again."
       );
       setLoading(false);
+    }
+  };
+
+  const openPortal = async () => {
+    setOpeningPortal(true);
+    try {
+      const { url } = await api.billing.getPortalUrl();
+      window.location.href = url;
+    } catch (err) {
+      setError("Could not open your billing page. Please try again or contact support.");
+      setOpeningPortal(false);
     }
   };
 
@@ -65,6 +79,11 @@ export default function Subscribe() {
           "Subscribe now"
         )}
       </Button>
+      {hasSubscription && (
+        <Button onClick={openPortal} variant="outline" className="mt-3 w-full h-12 font-medium" disabled={openingPortal}>
+          {openingPortal ? "Opening..." : "Manage subscription"}
+        </Button>
+      )}
       <button
         onClick={logout}
         className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"

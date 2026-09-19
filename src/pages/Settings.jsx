@@ -6,7 +6,28 @@ import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, Loader, Card, Field } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { showError, showSuccess } from "@/lib/errorToast";
-import { Upload, Save, LogOut, Wrench, User, Star, MessageSquareQuote } from "lucide-react";
+import { Upload, Save, LogOut, Wrench, User, Star, MessageSquareQuote, CreditCard } from "lucide-react";
+
+const SUBSCRIPTION_LABELS = {
+  on_trial: "Free trial",
+  active: "Active",
+  past_due: "Payment failed",
+  unpaid: "Payment failed",
+  cancelled: "Cancelled",
+  expired: "Expired",
+  paused: "Paused",
+};
+
+const fmtDate = (d) => new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+function subscriptionDetail(sub) {
+  const card = sub.card_last_four ? ` Card ending in ${sub.card_last_four}.` : "";
+  if (sub.status === "on_trial" && sub.trial_ends_at) return `Your trial ends on ${fmtDate(sub.trial_ends_at)}, then $10/month.${card}`;
+  if (sub.status === "active" && sub.renews_at) return `Renews on ${fmtDate(sub.renews_at)} for $10/month.${card}`;
+  if (sub.status === "cancelled" && sub.ends_at) return `You keep access until ${fmtDate(sub.ends_at)}.`;
+  if (sub.status === "past_due" || sub.status === "unpaid") return "Your last payment didn't go through. Update your card to keep using PitStop.";
+  return "Manage your billing details, invoices and cancellation.";
+}
 
 export default function Settings() {
   const { settings, save, loading, refresh } = useShopSettings();
@@ -23,6 +44,23 @@ export default function Settings() {
     if (settings) setForm({ shop_name: settings.shop_name || "", logo_url: settings.logo_url || "", phone: settings.phone || "", address: settings.address || "", tax_rate: settings.tax_rate ?? 0, invoice_terms: settings.invoice_terms || "" });
     else if (!loading) setForm({ shop_name: "", logo_url: "", phone: "", address: "", tax_rate: 0, invoice_terms: "" });
   }, [settings, loading]);
+
+  const [sub, setSub] = useState(null);
+  const [openingPortal, setOpeningPortal] = useState(false);
+  useEffect(() => {
+    api.billing.getSubscription().then(setSub).catch(() => {});
+  }, []);
+
+  const openPortal = async () => {
+    setOpeningPortal(true);
+    try {
+      const { url } = await api.billing.getPortalUrl();
+      window.location.href = url;
+    } catch (err) {
+      showError(err, "Could not open your billing page.");
+      setOpeningPortal(false);
+    }
+  };
 
   useEffect(() => {
     setName(user?.name || "");
@@ -202,6 +240,17 @@ export default function Settings() {
           </div>
         </form>
       </Card>
+
+      {sub && SUBSCRIPTION_LABELS[sub.status] && (
+        <Card className="max-w-lg p-4 mt-6">
+          <p className="field-label mb-2 flex items-center gap-1.5"><CreditCard className="h-4 w-4" /> Subscription</p>
+          <p className="text-sm text-foreground">{SUBSCRIPTION_LABELS[sub.status]}</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">{subscriptionDetail(sub)}</p>
+          <Button type="button" variant="outline" onClick={openPortal} disabled={openingPortal} className="mt-3">
+            {openingPortal ? "Opening…" : "Manage or cancel subscription"}
+          </Button>
+        </Card>
+      )}
 
       <Card className="max-w-lg p-4 mt-6">
         <p className="field-label mb-2">Account</p>
