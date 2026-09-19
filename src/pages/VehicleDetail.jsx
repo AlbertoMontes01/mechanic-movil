@@ -101,6 +101,7 @@ export default function VehicleDetail() {
           <Spec label="Odometer" value={vehicle.odometer != null ? `${Number(vehicle.odometer).toLocaleString()} mi` : "—"} />
           <Spec label="Engine Hours" value={vehicle.engine_hours != null ? vehicle.engine_hours : "—"} />
           <Spec label="Unit #" value={vehicle.unit_number} />
+          {vehicle.vehicle_type === "Truck" && <Spec label="Engine Serial #" value={vehicle.engine_serial} mono />}
           <Spec label="VIN" value={vehicle.vin} mono full />
         </div>
       </Card>

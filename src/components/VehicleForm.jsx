@@ -14,13 +14,13 @@ const TYPES = ["Truck", "Car", "SUV", "Van", "Motorcycle", "Other"];
 // pass clients/onClientCreated instead) to let the user pick or quick-add
 // the client right here, e.g. from the standalone Vehicles list page.
 export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clientId, clients, onClientCreated }) {
-  const [form, setForm] = useState({ vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "" });
+  const [form, setForm] = useState({ vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "", engine_serial: "" });
   const [saving, setSaving] = useState(false);
   const [pickedClientId, setPickedClientId] = useState("");
 
   useEffect(() => {
     if (open) {
-      setForm(vehicle ? { ...vehicle, odometer: vehicle.odometer ?? "", engine_hours: vehicle.engine_hours ?? "", year: vehicle.year ?? "" } : { vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "" });
+      setForm(vehicle ? { ...vehicle, odometer: vehicle.odometer ?? "", engine_hours: vehicle.engine_hours ?? "", engine_serial: vehicle.engine_serial ?? "", year: vehicle.year ?? "" } : { vehicle_type: "Truck", vin: "", vin_last8: "", year: "", make: "", model: "", unit_number: "", plate: "", odometer: "", engine_hours: "", engine_serial: "" });
       setPickedClientId(vehicle?.client_id || "");
     }
   }, [open, vehicle]);
@@ -40,6 +40,9 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
         year: form.year ? Number(form.year) : null,
         odometer: form.odometer !== "" ? Number(form.odometer) : null,
         engine_hours: form.engine_hours !== "" ? Number(form.engine_hours) : null,
+        // Trucks only -- sent as null for any other type so switching a
+        // vehicle away from Truck clears a previously-entered serial.
+        engine_serial: form.vehicle_type === "Truck" && form.engine_serial.trim() ? form.engine_serial.trim() : null,
         vin_last8: form.vin ? form.vin.slice(-8) : form.vin_last8,
       };
       const saved = vehicle?.id ? await api.entities.Vehicle.update(vehicle.id, payload) : await api.entities.Vehicle.create(payload);
@@ -86,6 +89,9 @@ export default function VehicleForm({ open, onOpenChange, onSaved, vehicle, clie
           <Field label="Plate"><input className="input-base mono" value={form.plate} onChange={(e) => set("plate", e.target.value.toUpperCase())} /></Field>
           <Field label="Odometer (mi)"><input className="input-base" type="number" value={form.odometer} onChange={(e) => set("odometer", e.target.value)} /></Field>
           <Field label="Engine Hours"><input className="input-base" type="number" value={form.engine_hours} onChange={(e) => set("engine_hours", e.target.value)} /></Field>
+          {form.vehicle_type === "Truck" && (
+            <div className="col-span-2"><Field label="Engine Serial #"><input className="input-base mono" value={form.engine_serial} onChange={(e) => set("engine_serial", e.target.value.toUpperCase())} /></Field></div>
+          )}
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={saving || (!clientId && !pickedClientId)}>{saving ? "Saving…" : "Save Vehicle"}</Button>
