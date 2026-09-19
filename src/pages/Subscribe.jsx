@@ -30,7 +30,13 @@ export default function Subscribe() {
       const { url } = await api.billing.createCheckout();
       window.location.href = url;
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      // 409 from POST /api/checkout: a subscription already exists on this
+      // account, so sending them to a new checkout would double-bill them.
+      setError(
+        err.message === "already_subscribed"
+          ? "You already have a PitStop subscription, so we can't start a new one. If you're still locked out, your payment may need attention. Check your email from Lemon Squeezy or contact support."
+          : err.message || "Something went wrong. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -39,7 +45,7 @@ export default function Subscribe() {
     <AuthLayout
       icon={CreditCard}
       title="Reactivate your subscription"
-      subtitle="Your trial ended or your last payment didn't go through"
+      subtitle="Subscribe to keep using PitStop"
     >
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
